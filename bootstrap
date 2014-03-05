@@ -1,0 +1,54 @@
+#!/usr/bin/env escript
+
+main(_Args) ->
+    % Compile the source files.
+    case make:files(filelib:wildcard("src/*.erl"),
+                    [{outdir, "ebin"}, {i, "include"}, debug_info]) of
+        up_to_date -> ok;
+        error ->
+            io:format("Compile failed.~n"),
+            erlang:halt(1)
+    end,
+
+    % Zip up the beam files.
+    Files = read_files("*", "ebin"),
+    case zip:create("mem", Files, [memory]) of
+        {ok, {"mem", ZipBin}} ->
+            case escript:create('binary', [shebang, {archive, ZipBin}]) of
+                {ok, Bin} ->
+                    case file:write_file("topcat", Bin) of
+                        ok ->
+                            ok;
+                        {error, WriteError} ->
+                            io:format("Failed to write script file: ~p~n", [WriteError])
+                    end;
+                {error, ScriptError} ->
+                    io:format("Failed to create script archive: ~p~n", [ScriptError]),
+                    erlang:halt(1)
+            end;
+        {error, ZipError} ->
+            io:format("Failed to create script archive: ~p~n", [ZipError]),
+            erlang:halt(1)
+    end,
+    io:format("Done.~n").
+
+%% @doc We want to read files from the "ebin" directory, but put them in the
+%% root of the ZIP file.  zip:create/3 expects Files :: [Name] or Files ::
+%% [{Name, Bin}]. We can't use the first, because it includes the "ebin" part
+%% of the name, which breaks escript. To use the second, we have to read the
+%% files ourselves.
+-spec read_files(Wildcard, Dir) -> [{Name, Bin}]
+    when Wildcard :: string(), Dir :: string(),
+    Name :: string(), Bin :: binary().
+read_files(Wildcard, Dir) ->
+    [read_file(Filename, Dir) || Filename <- filelib:wildcard(Wildcard, Dir)].
+
+-spec read_file(Filename, Dir) -> {Filename, Bin}
+    when Filename :: string(), Dir :: string(),
+    Bin :: binary().
+read_file(Filename, Dir) ->
+    {ok, Bin} = file:read_file(filename:join(Dir, Filename)),
+    {Filename, Bin}.
+
+%% -*- mode: erlang -*-
+%% vi: ft=erlang
