@@ -1,7 +1,7 @@
 -module(topcat_slave).
--export([start/1]).
+-export([start/0]).
 
-start([]) ->
-    {topcat, 'topcat@roger-p5q'} ! hello,
+start() ->
+    {topcat, 'topcat@localhost'} ! hello,
     ok.
 

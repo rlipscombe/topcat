@@ -2,32 +2,40 @@
 -export([main/1]).
 
 main(_Args) ->
-    io:format("topcat~n"),
-    io:format("~p~n", [filename:dirname(code:which(?MODULE))]),
+    %% We load parts of ourself into the new Erlang VM, so we need to do the next bit:
+    %%
+    % Strip off the escript shebang, and then unpack ourselves.
+    ok = filelib:ensure_dir(".topcat/PLACEHOLDER"),
 
-    extract_beams(),
-
+    {ok, EscriptBin} = file:read_file(filename:dirname(code:which(?MODULE))),
+    {Pos, _} = binary:match(EscriptBin, <<"PK">>),
+    <<_:Pos/binary, ZipBin/binary>> = EscriptBin,
+    {ok, _} = zip:extract(ZipBin, [{cwd, ".topcat"}]),
+    
     % @todo Don't register self; that results in mixing the receive loop below.
     register(topcat, self()),
 
+    {ok, Node} = slave:start_link(localhost, topcat_child, "-pa .topcat -s topcat_slave -s init stop"),
+    monitor_node(Node, true),
+    monitor_loop(Node).
+
+monitor_loop(Node) ->
+    receive
+        {nodedown,Node} ->
+            io:format("Slave died; we're done here."),
+            ok;
+        Other ->
+            io:format("~p~n", [Other]),
+            monitor_loop(Node)
+    end.
+
     % @todo Consider using the "slave" module instead?
-    Cmd = "erl" ++
-          " -noshell" ++
-          " -s topcat_slave",
-    sh(Cmd).
-
-%% Adding an escript archive to the code path isn't possible: -pa can't cope
-%% with archives with the escript prefix; if it could, we could load ourselves
-%% as a module.
-
-
-%% ...and this only works if we're already _in_ the VM (we're not).
-extract_beams() ->
-    EscriptBin = file:read_file(filename:dirname(code:which(?MODULE))),
-    {Pos, _} = binary:match(EscriptBin, <<"PK">>),
-    ZipBin = binary:part(EscriptBin, Pos, byte_size(EscriptBin) - Pos),
-    {ok, Beams} = zip:extract(ZipBin, [memory]),
-    [erlang:load_module(remove_ext_to_atom(Name), ModuleBin) || {Name, ModuleBin} <- Beams].
+%    Cmd = "erl" ++
+%          " -noshell" ++
+%          " -pa .topcat" ++
+%          " -s topcat_slave",
+%    sh(Cmd).
+    %ok.
 
 sh(Cmd) ->
     Opts = [exit_status, {line, 16384}, use_stdio, stderr_to_stdout, hide],

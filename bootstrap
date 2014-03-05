@@ -15,7 +15,7 @@ main(_Args) ->
     case zip:create("mem", Files, [memory]) of
         {ok, {"mem", ZipBin}} ->
             Sections = [shebang,
-                        {emu_args, "-noshell -noinput -sname topcat"},
+                        {emu_args, "-noshell -noinput -sname topcat@localhost"},
                         {archive, ZipBin}],
             case escript:create('binary', Sections) of
                 {ok, Bin} ->
