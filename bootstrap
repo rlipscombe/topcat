@@ -11,10 +11,13 @@ main(_Args) ->
     end,
 
     % Zip up the beam files.
-    Files = read_files("*", "ebin"),
+    Files = read_files("*.beam", "ebin"),
     case zip:create("mem", Files, [memory]) of
         {ok, {"mem", ZipBin}} ->
-            case escript:create('binary', [shebang, {archive, ZipBin}]) of
+            Sections = [shebang,
+                        {emu_args, "-noshell -noinput -sname topcat"},
+                        {archive, ZipBin}],
+            case escript:create('binary', Sections) of
                 {ok, Bin} ->
                     case file:write_file("topcat", Bin) of
                         ok ->
