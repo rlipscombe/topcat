@@ -9,9 +9,14 @@ main(_Args) ->
 
     {ok, _} = topcat_server:start_link(),
 
-    Applications = filelib:wildcard("apps/*"),
+    Applications = get_applications(),
     run(Applications),
     topcat_server:stop().
+
+%% @doc Find applications (directories in apps that don't start with a dot).
+%% @todo Use rebar.config instead?
+get_applications() ->
+    ["apps/" ++ A || A <- filelib:wildcard("*", "apps"), hd(A) =/= $.].
 
 run([]) ->
     ok;
@@ -23,7 +28,7 @@ run([Application|Rest]) ->
 run_port(Application) ->
     SlaveArgs = create_slave_args(Application),
     Cmd = "erl -noshell -noinput -sname topcat_child@localhost" ++
-          SlaveArgs,
+    SlaveArgs,
     Opts = [exit_status, {line, 16384}, use_stdio, stderr_to_stdout, hide],
     Port = erlang:open_port({spawn, Cmd}, Opts),
     port_loop(Port).
@@ -49,10 +54,13 @@ get_config_file_arg(Application) ->
 
 create_slave_args(Application) ->
     SlaveArgs = " -pa .topcat" ++
-                " -pa " ++ lists:foldl(fun(X, Acc) -> Acc ++ " " ++ X end, "", filelib:wildcard("deps/*/ebin")) ++
-                " -pa " ++ lists:foldl(fun(X, Acc) -> Acc ++ " " ++ X end, "", filelib:wildcard("apps/*/ebin")) ++
-                " -s topcat_slave -s init stop" ++
-                get_config_file_arg(Application),
+    " -pa " ++ lists:foldl(fun(X, Acc) -> Acc ++ " " ++ X end, "", filelib:wildcard("deps/*/ebin")) ++
+    " -pa " ++ lists:foldl(fun(X, Acc) -> Acc ++ " " ++ X end, "", filelib:wildcard("apps/*/ebin")) ++
+    " -s topcat_slave -s init stop" ++
+    " -dir " ++ Application ++ "/suites" ++
+    " -logdir " ++ Application ++ "/logs/ct" ++
+    " -env TEST_DIR " ++ Application ++
+    get_config_file_arg(Application),
     io:format("SlaveArgs=~p~n", [SlaveArgs]),
     SlaveArgs.
 
@@ -71,3 +79,14 @@ monitor_loop(Node) ->
             io:format("~p~n", [Other]),
             monitor_loop(Node)
     end.
+
+%    Ok = proplists:get_value(ok, Status, []),
+%    [log_ok_result("OK: ~p~n", [TestcaseName]) || {_SuiteName, TestcaseName} <- Ok],
+%    Skipped = proplists:get_value(skipped, Status, []),
+%    [log_skipped_result("Skipped: ~p~n", [TestcaseName]) || {_SuiteName, TestcaseName} <- Skipped],
+%    Failed = proplists:get_value(failed, Status, []),
+%    [log_failed_result("Failed: ~p~n", [TestcaseName]) || {_SuiteName, TestcaseName} <- Failed],
+    
+    %log_verbose("post_end_per_suite(SuiteName=~p, Config=~p, Return=~p, State=~p~n",
+    %          [SuiteName, Config, Return, State]),
+

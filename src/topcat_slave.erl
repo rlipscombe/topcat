@@ -3,15 +3,14 @@
 
 start() ->
     {topcat, 'topcat@localhost'} ! hello,
-
-    % We want to redirect "user" output as soon as possible, otherwise CT gets a bit noisy.
     Hooks = [topcat_cth],
     [code:load_file(H) || H <- Hooks],
 
-    TestDirs = filename:absname("apps/imp_server/suites"),
-    LogDir = filename:absname("apps/imp_server/logs/ct"),
+    {ok, [[TestDir]]} = init:get_argument(dir),
+    {ok, [[LogDir]]} = init:get_argument(logdir),
+
     Opts = [
-            {dir, TestDirs},
+            {dir, TestDir},
             {logdir, LogDir},
             {ct_hooks, Hooks}],
     ct:run_test(Opts).

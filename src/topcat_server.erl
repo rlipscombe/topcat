@@ -13,17 +13,55 @@ init([]) ->
     State = [],
     {ok, State}.
 
-handle_call(Request, From, State) ->
-    io:format("handle_call(Request=~p, From=~p, State=~p~n)", [Request, From, State]),
+handle_call(stop, _From, State) ->
+    report_summary(State),
+    {reply, ok, State};
+handle_call(_Request, _From, State) ->
+    %io:format("topcat_server:handle_call(Request=~p, From=~p, State=~p~n)", [Request, From, State]),
     {reply, ok, State}.
 
-handle_cast(Request, State) ->
-    io:format("handle_cast(Request=~p, State=~p~n)", [Request, State]),
+report_summary(State) ->
+    io:format("State: ~p~n", [State]),
+    [report_suite_summary(S) || S <- State].
+
+report_suite_summary([]) ->
+    ok;
+report_suite_summary([{ok, Tests}|Rest]) ->
+    report_ok_tests(Tests),
+    report_suite_summary(Rest);
+report_suite_summary([{skipped, Tests}|Rest]) ->
+    report_skipped_tests(Tests),
+    report_suite_summary(Rest);
+report_suite_summary([{failed, Tests}|Rest]) ->
+    report_failed_tests(Tests),
+    report_suite_summary(Rest).
+
+report_ok_tests(Tests) ->
+    [io:format("\e[0;32m~p.~p...OK\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
+
+report_skipped_tests(Tests) ->
+    [io:format("\e[0;33m~p.~p...Skipped\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
+
+report_failed_tests(Tests) ->
+    [io:format("\e[0;31m~p.~p...Failed\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
+
+handle_cast(_Request, State) ->
+    %io:format("topcat_server:handle_cast(Request=~p, State=~p~n)", [Request, State]),
     {noreply, State}.
 
-handle_info(Info, State) ->
-    io:format("handle_info(Info=~p, State=~p~n)", [Info, State]),
+handle_info(_Info = {tc_group_results, Results}, State) ->
+    %io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
+    NewState = collect_results(Results, State),
+    {noreply, NewState};
+handle_info(_Info, State) ->
+    %io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
     {noreply, State}.
+
+% Results is a proplist: [{ok, OK}, {skipped, Skipped}, {failed, Failed}].
+% Where OK, Skipped, Failed are [{suite, tc}, ...]
+% Not sure what we want, so this'll do for now.
+collect_results(Results, State) ->
+    [Results | State].
 
 terminate(_Reason, _State) ->
     ok.
