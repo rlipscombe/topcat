@@ -3,5 +3,14 @@
 
 start() ->
     {topcat, 'topcat@localhost'} ! hello,
-    ok.
 
+    Hooks = [topcat_cth],
+    [code:load_file(H) || H <- Hooks],
+
+    TestDirs = filename:absname("apps/imp_server/suites"),
+    LogDir = filename:absname("apps/imp_server/logs/ct"),
+    Opts = [
+            {dir, TestDirs},
+            {logdir, LogDir},
+            {ct_hooks, Hooks}],
+    ct:run_test(Opts).
