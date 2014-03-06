@@ -9,11 +9,18 @@ main(_Args) ->
 
     % @todo Don't register self; that results in mixing the receive loop below.
     register(topcat, self()),
-    %run_slave().
-    run_port().
+    Applications = filelib:wildcard("apps/*"),
+    run(Applications).
 
-run_port() ->
-    SlaveArgs = create_slave_args(),
+run([]) ->
+    ok;
+run([Application|Rest]) ->
+    %run_slave().
+    run_port(Application),
+    run(Rest).
+
+run_port(Application) ->
+    SlaveArgs = create_slave_args(Application),
     Cmd = "erl -noshell -noinput -sname topcat_child@localhost" ++
           SlaveArgs,
     Opts = [exit_status, {line, 16384}, use_stdio, stderr_to_stdout, hide],
@@ -25,24 +32,31 @@ port_loop(Port) ->
         {Port, {data, {eol, Data}}} ->
             io:format("~s~n", [Data]),
             port_loop(Port);
-        {Port, {exit_status, Status}} ->
+        {Port, {exit_status, _Status}} ->
             ok;
         Other ->
             io:format("~p~n", [Other]),
             port_loop(Port)
     end.
 
-create_slave_args() ->
+get_config_file_arg(Application) ->
+    ConfigFile = Application ++ "/suites/app.config",
+    case filelib:is_regular(ConfigFile) of
+        true -> " -config " ++ ConfigFile;
+        _ -> ""
+    end.
+
+create_slave_args(Application) ->
     SlaveArgs = " -pa .topcat" ++
                 " -pa " ++ lists:foldl(fun(X, Acc) -> Acc ++ " " ++ X end, "", filelib:wildcard("deps/*/ebin")) ++
                 " -pa " ++ lists:foldl(fun(X, Acc) -> Acc ++ " " ++ X end, "", filelib:wildcard("apps/*/ebin")) ++
-                " -s topcat_slave -s init stop"
-                " -config /home/roger/Source/imp/imp_server/apps/imp_server/suites/app.config",
-    io:format("~p~n", [SlaveArgs]),
+                " -s topcat_slave -s init stop" ++
+                get_config_file_arg(Application),
+    io:format("SlaveArgs=~p~n", [SlaveArgs]),
     SlaveArgs.
 
-run_slave() ->
-    SlaveArgs = create_slave_args(),
+run_slave(Application) ->
+    SlaveArgs = create_slave_args(Application),
     {ok, Node} = slave:start_link(localhost, topcat_child, SlaveArgs),
     monitor_node(Node, true),
     monitor_loop(Node).

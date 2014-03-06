@@ -4,6 +4,7 @@
 start() ->
     {topcat, 'topcat@localhost'} ! hello,
 
+    % We want to redirect "user" output as soon as possible, otherwise CT gets a bit noisy.
     Hooks = [topcat_cth],
     [code:load_file(H) || H <- Hooks],
 
