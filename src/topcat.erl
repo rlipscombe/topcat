@@ -7,10 +7,11 @@ main(_Args) ->
     io:format("topcat~n"),
     topcat_archive:extract_beams(?TEMP_FOLDER),
 
-    % @todo Don't register self; that results in mixing the receive loop below.
-    register(topcat, self()),
+    {ok, _} = topcat_server:start_link(),
+
     Applications = filelib:wildcard("apps/*"),
-    run(Applications).
+    run(Applications),
+    topcat_server:stop().
 
 run([]) ->
     ok;

@@ -1,7 +1,7 @@
 -module(topcat_cth).
 -export([init/2]).
 
--export([pre_init_per_suite/3, post_end_per_suite/4]).
+-export([post_end_per_suite/4]).
 
 -include_lib("common_test/include/ct.hrl").
 
@@ -29,33 +29,7 @@ init(Id, Opts) ->
     State = #state{},
     {ok, State}.
 
-%% @doc Called before each suite starts;
-%% we'll use it to redirect "user" output. This means that we can gather it, and only output it if the test fails.
-pre_init_per_suite(SuiteName, InitData, State) ->
-    % OK, so we either have to redirect output here, or we need to raise an event to the next guy out, so that he knows which output
-    % goes with which suite. That said: the output wants to be rendered with the failure, which kinda goes here, so we should be doing it ourselves.
-    % So, then the question becomes one of how do we get output out without redirection?
-    % @todo having redirected the output, how do I now write to the console?
-    % @todo How does CT do it (as it did when I broke the hook)?
-    % @todo Probably by opening the TTY directly...?
-    % @todo Next question: what to do on Jenkins, where we're not on a terminal.
-    log_verbose("pre_init_per_suite(SuiteName=~p, InitData=~p, State=~p",
-              [SuiteName, InitData, State]),
-    NewState = redirect_user_output(State),
-    {InitData, NewState}.
-
-redirect_user_output(State) ->
-    OldUser = whereis(user),
-    unregister(user),
-    State#state{old_user=OldUser}.
-
-restore_user_output(State = #state{old_user=OldUser}) ->
-    unregister(user),
-    register(user, OldUser),
-    State#state{old_user=undefined}.
-
 post_end_per_suite(SuiteName, Config, Return, State) ->
-    NewState = restore_user_output(State),
     Status = ?config(tc_group_result, Config),
     Ok = proplists:get_value(ok, Status, []),
     [log_ok_result("OK: ~p~n", [TestcaseName]) || {_SuiteName, TestcaseName} <- Ok],
@@ -66,4 +40,4 @@ post_end_per_suite(SuiteName, Config, Return, State) ->
     
     %log_verbose("post_end_per_suite(SuiteName=~p, Config=~p, Return=~p, State=~p~n",
     %          [SuiteName, Config, Return, State]),
-    {Config, NewState}.
+    {Config, State}.
