@@ -9,7 +9,7 @@ start() ->
     {ok, [[LogDir]]} = init:get_argument(logdir),
 
     Opts = [
-            {dir, TestDir},
-            {logdir, LogDir},
+            {dir, filename:absname(TestDir)},
+            {logdir, filename:absname(LogDir)},
             {ct_hooks, Hooks}],
     ct:run_test(Opts).

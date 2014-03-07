@@ -54,15 +54,23 @@ get_config_file_arg(Application) ->
 
 create_slave_args(Application) ->
     SlaveArgs = " -pa .topcat" ++
-    " -pa " ++ lists:foldl(fun(X, Acc) -> Acc ++ " " ++ X end, "", filelib:wildcard("deps/*/ebin")) ++
-    " -pa " ++ lists:foldl(fun(X, Acc) -> Acc ++ " " ++ X end, "", filelib:wildcard("apps/*/ebin")) ++
-    " -s topcat_slave -s init stop" ++
-    " -dir " ++ Application ++ "/suites" ++
-    " -logdir " ++ Application ++ "/logs/ct" ++
-    " -env TEST_DIR " ++ Application ++
-    get_config_file_arg(Application),
+                " -pa " ++ create_code_paths("deps/*/ebin") ++
+                " -pa " ++ create_code_paths("apps/*/ebin") ++
+                " -s topcat_slave -s init stop" ++
+                " -dir " ++ Application ++ "/suites" ++
+                " -logdir " ++ Application ++ "/logs/ct" ++
+                " -env TEST_DIR " ++ Application ++
+                get_config_file_arg(Application),
     io:format("SlaveArgs=~p~n", [SlaveArgs]),
     SlaveArgs.
+
+create_code_paths(Wildcard) ->
+    join_paths([filename:absname(P) || P <- filelib:wildcard(Wildcard)]).
+
+join_paths(Paths) ->
+    lists:foldl(fun(X, Acc) ->
+                Acc ++ " " ++ X
+        end, "", Paths).
 
 run_slave(Application) ->
     SlaveArgs = create_slave_args(Application),
