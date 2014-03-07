@@ -21,13 +21,12 @@ handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 report_summary(State) ->
-    io:format("State: ~p~n", [State]),
     [report_suite_summary(S) || S <- State].
 
 report_suite_summary([]) ->
     ok;
 report_suite_summary([{ok, Tests}|Rest]) ->
-    report_ok_tests(Tests),
+    %report_ok_tests(Tests),
     report_suite_summary(Rest);
 report_suite_summary([{skipped, Tests}|Rest]) ->
     report_skipped_tests(Tests),
@@ -53,8 +52,14 @@ handle_info(_Info = {tc_group_results, Results}, State) ->
     %io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
     NewState = collect_results(Results, State),
     {noreply, NewState};
-handle_info(_Info, State) ->
-    %io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
+handle_info({pre_init_per_suite, SuiteName}, State) ->
+    io:format("\e[0;96m~p\e[0m~n", [SuiteName]),
+    {noreply, State};
+handle_info({pre_init_per_testcase, SuiteName}, State) ->
+    io:format("  \e[0;96m~p\e[0m~n", [SuiteName]),
+    {noreply, State};
+handle_info(Info, State) ->
+    io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
     {noreply, State}.
 
 % Results is a proplist: [{ok, OK}, {skipped, Skipped}, {failed, Failed}].
