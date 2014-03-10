@@ -17,7 +17,7 @@ report_suite_summary([{Result, Tests}|Rest], Acc) ->
     report_suite_summary(Rest, Acc1).
 
 report_tests(ok, Tests, {OK, Skipped, Failed}) ->
-    [report_ok_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests],
+    %[report_ok_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests],
     N = length(Tests),
     {OK + N, Skipped, Failed};
 report_tests(skipped, Tests, {OK, Skipped, Failed}) ->
@@ -29,8 +29,8 @@ report_tests(failed, Tests, {OK, Skipped, Failed}) ->
     N = length(Tests),
     {OK, Skipped, Failed + N}.
 
-report_ok_test(SuiteName, TestcaseName) ->
-    io:format("\e[0;92m~p.~p: OK\e[0m~n", [SuiteName, TestcaseName]).
+%report_ok_test(SuiteName, TestcaseName) ->
+%    io:format("\e[0;92m~p.~p: OK\e[0m~n", [SuiteName, TestcaseName]).
 
 report_skipped_test(SuiteName, TestcaseName) ->
     io:format("\e[0;93m~p.~p: Skipped\e[0m~n", [SuiteName, TestcaseName]).
