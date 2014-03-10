@@ -16,6 +16,19 @@ init([]) ->
 handle_call(stop, _From, State) ->
     report_summary(State),
     {reply, ok, State};
+handle_call({pre_init_per_suite, SuiteName}, _From, State) ->
+    report_suite_starts(SuiteName),
+    {reply, ok, State};
+handle_call({pre_init_per_testcase, TestcaseName}, _From, State) ->
+    report_testcase_starts(TestcaseName),
+    {reply, ok, State};
+handle_call({post_end_per_testcase, TestcaseName, Status}, _From, State) ->
+    report_testcase_ends(TestcaseName, Status),
+    {reply, ok, State};
+handle_call({tc_group_results, Results}, _From, State) ->
+    %io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
+    NewState = collect_results(Results, State),
+    {reply, ok, NewState};
 handle_call(_Request, _From, State) ->
     %io:format("topcat_server:handle_call(Request=~p, From=~p, State=~p~n)", [Request, From, State]),
     {reply, ok, State}.
@@ -75,19 +88,6 @@ handle_cast(_Request, State) ->
     %io:format("topcat_server:handle_cast(Request=~p, State=~p~n)", [Request, State]),
     {noreply, State}.
 
-handle_info({pre_init_per_suite, SuiteName}, State) ->
-    report_suite_starts(SuiteName),
-    {noreply, State};
-handle_info({pre_init_per_testcase, TestcaseName}, State) ->
-    report_testcase_starts(TestcaseName),
-    {noreply, State};
-handle_info({post_end_per_testcase, TestcaseName, Status}, State) ->
-    report_testcase_ends(TestcaseName, Status),
-    {noreply, State};
-handle_info({tc_group_results, Results}, State) ->
-    %io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
-    NewState = collect_results(Results, State),
-    {noreply, NewState};
 handle_info(Info, State) ->
     io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
     {noreply, State}.

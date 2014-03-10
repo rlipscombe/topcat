@@ -30,4 +30,5 @@ post_end_per_suite(_SuiteName, Config, _Return, State) ->
     {Config, State}.
 
 notify(Request) ->
-    {topcat, 'topcat@localhost'} ! Request.
+    ServerRef = {topcat, 'topcat@localhost'},
+    gen_server:call(ServerRef, Request).
