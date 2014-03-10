@@ -92,6 +92,9 @@ report_testcase_ends(TestcaseName, Status) ->
 report_stacktrace(Stacktrace) ->
     [report_stackframe(Frame) || Frame <- Stacktrace].
 
+report_stackframe({Module, Function, [], _}) ->
+    io:format("  at ~p:~p~n",
+              [Module, Function]);
 report_stackframe({Module, Function, Arity, Location}) ->
     File = proplists:get_value(file, Location, undefined),
     Line = proplists:get_value(line, Location, 0),
