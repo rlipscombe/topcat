@@ -2,31 +2,32 @@
 -export([report_summary/1, report_suite_starts/1, report_testcase_starts/1, report_testcase_ends/2]).
 
 report_summary(State) ->
-    [report_suite_summary(S) || S <- State].
+    Fun = fun(Suite, Acc) ->
+            report_suite_summary(Suite, Acc)
+    end,
+    lists:foldl(Fun, {0, 0, 0}, State).
 
-report_suite_summary([]) ->
-    ok;
-report_suite_summary([{ok, _Tests}|Rest]) ->
-    %report_ok_tests(Tests),
-    report_suite_summary(Rest);
-report_suite_summary([{skipped, Tests}|Rest]) ->
-    report_skipped_tests(Tests),
-    report_suite_summary(Rest);
-report_suite_summary([{failed, Tests}|Rest]) ->
-    report_failed_tests(Tests),
-    report_suite_summary(Rest).
+report_suite_summary([], Acc) ->
+    Acc;
+report_suite_summary([{Result, Tests}|Rest], Acc) ->
+    Acc1 = report_tests(Result, Tests, Acc),
+    report_suite_summary(Rest, Acc1).
 
-%report_ok_tests(Tests) ->
-%    [report_ok_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests].
+report_tests(ok, Tests, {OK, Skipped, Failed}) ->
+    [report_ok_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests],
+    N = length(Tests),
+    {OK + N, Skipped, Failed};
+report_tests(skipped, Tests, {OK, Skipped, Failed}) ->
+    [report_skipped_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests],
+    N = length(Tests),
+    {OK, Skipped + N, Failed};
+report_tests(failed, Tests, {OK, Skipped, Failed}) ->
+    [report_failed_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests],
+    N = length(Tests),
+    {OK, Skipped, Failed + N}.
 
-report_skipped_tests(Tests) ->
-    [report_skipped_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests].
-
-report_failed_tests(Tests) ->
-    [report_failed_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests].
-
-%report_ok_test(SuiteName, TestcaseName) ->
-%    io:format("\e[0;92m~p.~p: OK\e[0m~n", [SuiteName, TestcaseName]).
+report_ok_test(SuiteName, TestcaseName) ->
+    io:format("\e[0;92m~p.~p: OK\e[0m~n", [SuiteName, TestcaseName]).
 
 report_skipped_test(SuiteName, TestcaseName) ->
     io:format("\e[0;93m~p.~p: Skipped\e[0m~n", [SuiteName, TestcaseName]).
