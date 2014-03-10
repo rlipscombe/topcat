@@ -25,7 +25,7 @@ report_summary(State) ->
 
 report_suite_summary([]) ->
     ok;
-report_suite_summary([{ok, Tests}|Rest]) ->
+report_suite_summary([{ok, _Tests}|Rest]) ->
     %report_ok_tests(Tests),
     report_suite_summary(Rest);
 report_suite_summary([{skipped, Tests}|Rest]) ->
@@ -35,29 +35,59 @@ report_suite_summary([{failed, Tests}|Rest]) ->
     report_failed_tests(Tests),
     report_suite_summary(Rest).
 
-report_ok_tests(Tests) ->
-    [io:format("\e[0;92m~p.~p...OK\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
+%report_ok_tests(Tests) ->
+%    [report_ok_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests].
 
 report_skipped_tests(Tests) ->
-    [io:format("\e[0;93m~p.~p...Skipped\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
+    [report_skipped_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests].
 
 report_failed_tests(Tests) ->
-    [io:format("\e[0;91m~p.~p...Failed\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
+    [report_failed_test(SuiteName, TestcaseName) || {SuiteName, TestcaseName} <- Tests].
+
+%report_ok_test(SuiteName, TestcaseName) ->
+%    io:format("\e[0;92m~p.~p...OK\e[0m~n", [SuiteName, TestcaseName]).
+
+report_skipped_test(SuiteName, TestcaseName) ->
+    io:format("\e[0;93m~p.~p...Skipped\e[0m~n", [SuiteName, TestcaseName]).
+
+report_failed_test(SuiteName, TestcaseName) ->
+    io:format("\e[0;91m~p.~p...Failed\e[0m~n", [SuiteName, TestcaseName]).
+
+report_suite_starts(SuiteName) ->
+    io:format("\e[0;96m~p\e[0m~n", [SuiteName]).
+
+report_testcase_starts(TestcaseName) ->
+    io:format("  \e[0;96m~p\e[0m~n", [TestcaseName]).
+
+report_testcase_ends(TestcaseName, ok) ->
+    io:format("  \e[0;96m~p...\e[0;92m~s\e[0m~n", [TestcaseName, "OK"]);
+report_testcase_ends(TestcaseName, skipped) ->
+    io:format("  \e[0;96m~p...\e[0;93m~s\e[0m~n", [TestcaseName, "Skipped"]);
+report_testcase_ends(TestcaseName, {skipped, {failed, {_SuiteName, SetupName, _}}}) ->
+    % Skipped because init failed.
+    io:format("  \e[0;96m~p...\e[0;91m~s (~s Failed)\e[0m~n", [TestcaseName, "Skipped", SetupName]);
+report_testcase_ends(TestcaseName, failed) ->
+    io:format("  \e[0;96m~p...\e[0;91m~s\e[0m~n", [TestcaseName, "Failed"]);
+report_testcase_ends(TestcaseName, Status) ->
+    io:format("  \e[0;96m~p...\e[0;91m~p\e[0m~n", [TestcaseName, Status]).
 
 handle_cast(_Request, State) ->
     %io:format("topcat_server:handle_cast(Request=~p, State=~p~n)", [Request, State]),
     {noreply, State}.
 
-handle_info(_Info = {tc_group_results, Results}, State) ->
+handle_info({pre_init_per_suite, SuiteName}, State) ->
+    report_suite_starts(SuiteName),
+    {noreply, State};
+handle_info({pre_init_per_testcase, TestcaseName}, State) ->
+    report_testcase_starts(TestcaseName),
+    {noreply, State};
+handle_info({post_end_per_testcase, TestcaseName, Status}, State) ->
+    report_testcase_ends(TestcaseName, Status),
+    {noreply, State};
+handle_info({tc_group_results, Results}, State) ->
     %io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
     NewState = collect_results(Results, State),
     {noreply, NewState};
-handle_info({pre_init_per_suite, SuiteName}, State) ->
-    io:format("\e[0;96m~p\e[0m~n", [SuiteName]),
-    {noreply, State};
-handle_info({pre_init_per_testcase, SuiteName}, State) ->
-    io:format("  \e[0;96m~p\e[0m~n", [SuiteName]),
-    {noreply, State};
 handle_info(Info, State) ->
     io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
     {noreply, State}.
