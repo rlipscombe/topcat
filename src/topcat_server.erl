@@ -36,13 +36,13 @@ report_suite_summary([{failed, Tests}|Rest]) ->
     report_suite_summary(Rest).
 
 report_ok_tests(Tests) ->
-    [io:format("\e[0;32m~p.~p...OK\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
+    [io:format("\e[0;92m~p.~p...OK\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
 
 report_skipped_tests(Tests) ->
-    [io:format("\e[0;33m~p.~p...Skipped\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
+    [io:format("\e[0;93m~p.~p...Skipped\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
 
 report_failed_tests(Tests) ->
-    [io:format("\e[0;31m~p.~p...Failed\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
+    [io:format("\e[0;91m~p.~p...Failed\e[0m~n", [SuiteName, TestcaseName]) || {SuiteName, TestcaseName} <- Tests].
 
 handle_cast(_Request, State) ->
     %io:format("topcat_server:handle_cast(Request=~p, State=~p~n)", [Request, State]),
