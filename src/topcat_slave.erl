@@ -12,4 +12,5 @@ start() ->
             {dir, filename:absname(TestDir)},
             {logdir, filename:absname(LogDir)},
             {ct_hooks, Hooks}],
+
     ct:run_test(Opts).

@@ -12,15 +12,17 @@ init(_Id, _Opts) ->
     {ok, State}.
 
 pre_init_per_suite(SuiteName, InitData, State) ->
-    {topcat, 'topcat@localhost'} ! {pre_init_per_suite, SuiteName},
+    notify({pre_init_per_suite, SuiteName}),
     {InitData, State}.
 
 pre_init_per_testcase(TestcaseName, InitData, State) ->
-    {topcat, 'topcat@localhost'} ! {pre_init_per_testcase, TestcaseName},
-    io:format("~p~n", [TestcaseName]),
+    notify({pre_init_per_testcase, TestcaseName}),
     {InitData, State}.
 
 post_end_per_suite(_SuiteName, Config, _Return, State) ->
     Status = ?config(tc_group_result, Config),
-    {topcat, 'topcat@localhost'} ! {tc_group_results, Status},
+    notify({tc_group_results, Status}),
     {Config, State}.
+
+notify(Request) ->
+    {topcat, 'topcat@localhost'} ! Request.
