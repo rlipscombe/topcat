@@ -1,8 +1,12 @@
 -module(topcat_cth).
 -export([init/2]).
 
--export([pre_init_per_suite/3, post_end_per_suite/4]).
--export([pre_init_per_testcase/3, post_end_per_testcase/4]).
+-export([pre_init_per_suite/3, post_init_per_suite/4]).
+-export([post_end_per_suite/4]).
+
+-export([pre_init_per_testcase/3]).
+-export([on_tc_fail/3, on_tc_skip/3]).
+-export([post_end_per_testcase/4]).
 
 -include_lib("common_test/include/ct.hrl").
 
@@ -14,6 +18,18 @@ init(_Id, _Opts) ->
 pre_init_per_suite(SuiteName, InitData, State) ->
     notify({pre_init_per_suite, SuiteName}),
     {InitData, State}.
+
+post_init_per_suite(SuiteName, Config, Return, State) ->
+    notify({post_init_per_suite, SuiteName, Config, Return}),
+    {Config, State}.
+
+on_tc_fail(TestcaseName, Reason, State) ->
+    notify({on_tc_fail, TestcaseName, Reason}),
+    State.
+
+on_tc_skip(TestcaseName, Reason, State) ->
+    notify({on_tc_skip, TestcaseName, Reason}),
+    State.
 
 pre_init_per_testcase(TestcaseName, InitData, State) ->
     notify({pre_init_per_testcase, TestcaseName}),

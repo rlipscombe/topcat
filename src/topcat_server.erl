@@ -19,6 +19,9 @@ handle_call(stop, _From, State) ->
 handle_call({pre_init_per_suite, SuiteName}, _From, State) ->
     report_suite_starts(SuiteName),
     {reply, ok, State};
+handle_call({post_init_per_suite, _SuiteName, _Config, _Return}, _From, State) ->
+    % Ignore it.
+    {reply, ok, State};
 handle_call({pre_init_per_testcase, TestcaseName}, _From, State) ->
     report_testcase_starts(TestcaseName),
     {reply, ok, State};
@@ -29,8 +32,8 @@ handle_call({tc_group_results, Results}, _From, State) ->
     %io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
     NewState = collect_results(Results, State),
     {reply, ok, NewState};
-handle_call(_Request, _From, State) ->
-    %io:format("topcat_server:handle_call(Request=~p, From=~p, State=~p~n)", [Request, From, State]),
+handle_call(Request, _From, State) ->
+    io:format("topcat_server:handle_call(Request=~p~n)", [Request]),
     {reply, ok, State}.
 
 report_summary(State) ->
@@ -76,13 +79,24 @@ report_testcase_ends(TestcaseName, ok) ->
     io:format("  \e[0;96m~p...\e[0;92m~s\e[0m~n", [TestcaseName, "OK"]);
 report_testcase_ends(TestcaseName, skipped) ->
     io:format("  \e[0;96m~p...\e[0;93m~s\e[0m~n", [TestcaseName, "Skipped"]);
-report_testcase_ends(TestcaseName, {skipped, {failed, {_SuiteName, SetupName, _}}}) ->
+report_testcase_ends(TestcaseName, {skipped, {failed, {_SuiteName, SetupName, {Reason, Stacktrace}}}}) ->
     % Skipped because init failed.
-    io:format("  \e[0;96m~p...\e[0;91m~s (~s Failed)\e[0m~n", [TestcaseName, "Skipped", SetupName]);
+    io:format("  \e[0;96m~p...\e[0;91m~s (~s Failed)\e[0m~n", [TestcaseName, "Skipped", SetupName]),
+    io:format("  ~p~n", [Reason]),
+    report_stacktrace(Stacktrace);
 report_testcase_ends(TestcaseName, failed) ->
     io:format("  \e[0;96m~p...\e[0;91m~s\e[0m~n", [TestcaseName, "Failed"]);
 report_testcase_ends(TestcaseName, Status) ->
     io:format("  \e[0;96m~p...\e[0;91m~p\e[0m~n", [TestcaseName, Status]).
+
+report_stacktrace(Stacktrace) ->
+    [report_stackframe(Frame) || Frame <- Stacktrace].
+
+report_stackframe({Module, Function, Arity, Location}) ->
+    File = proplists:get_value(file, Location, undefined),
+    Line = proplists:get_value(line, Location, 0),
+    io:format("  at ~p:~p/~p (~s:~p)~n",
+              [Module, Function, Arity, File, Line]).
 
 handle_cast(_Request, State) ->
     %io:format("topcat_server:handle_cast(Request=~p, State=~p~n)", [Request, State]),
