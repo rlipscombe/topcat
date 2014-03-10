@@ -2,10 +2,13 @@
 -export([report_summary/1, report_suite_starts/1, report_testcase_starts/1, report_testcase_ends/2]).
 
 report_summary(State) ->
-    Fun = fun(Suite, Acc) ->
-            report_suite_summary(Suite, Acc)
-    end,
-    lists:foldl(Fun, {0, 0, 0}, State).
+    {OK, Skipped, Failed} = lists:foldl(fun report_suite_summary/2, {0, 0, 0}, State),
+    Total = OK + Skipped + Failed,
+    Plural = pluralize(Total, "case", "cases"),
+    io:format("~p ok, ~p skipped, ~p failed of ~p test ~s~n", [OK, Skipped, Failed, Total, Plural]).
+
+pluralize(1, Singular, _) -> Singular;
+pluralize(_, Plural, _) -> Plural.
 
 report_suite_summary([], Acc) ->
     Acc;
