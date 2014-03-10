@@ -32,8 +32,7 @@ main(_Args) ->
         {error, ZipError} ->
             io:format("Failed to create script archive: ~p~n", [ZipError]),
             erlang:halt(1)
-    end,
-    io:format("Done.~n").
+    end.
 
 %% @doc We want to read files from the "ebin" directory, but put them in the
 %% root of the ZIP file.  zip:create/3 expects Files :: [Name] or Files ::
