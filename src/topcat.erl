@@ -2,6 +2,7 @@
 -export([main/1]).
 
 -define(TEMP_FOLDER, ".topcat").
+-define(SUITES, "suites").
 
 main(_Args) ->
     io:format("topcat~n"),
@@ -45,8 +46,11 @@ port_loop(Port) ->
             port_loop(Port)
     end.
 
+get_config_file_path(Application) ->
+    filename:absname(filename:join([Application, ?SUITES, "app.config"])).
+
 get_config_file_arg(Application) ->
-    ConfigFile = Application ++ "/suites/app.config",
+    ConfigFile = get_config_file_path(Application),
     case filelib:is_regular(ConfigFile) of
         true -> " -config " ++ ConfigFile;
         _ -> ""
@@ -57,7 +61,7 @@ create_slave_args(Application) ->
                 " -pa " ++ create_code_paths("deps/*/ebin") ++
                 " -pa " ++ create_code_paths("apps/*/ebin") ++
                 " -s topcat_slave -s init stop" ++
-                " -dir " ++ Application ++ "/suites" ++
+                " -dir " ++ filename:join(Application, ?SUITES) ++
                 " -logdir " ++ Application ++ "/logs/ct" ++
                 " -env TEST_DIR " ++ Application ++
                 get_config_file_arg(Application),
