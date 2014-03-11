@@ -56,8 +56,11 @@ get_config_file_arg(Application) ->
         _ -> ""
     end.
 
+get_include_dir_path(Application) ->
+    filename:absname(filename:join([Application, "include"])).
+
 get_include_arg(Application) ->
-    IncludeDir = filename:join([Application, "include"]),
+    IncludeDir = get_include_dir_path(Application),
     case filelib:is_dir(IncludeDir) of
         true -> " -include " ++ IncludeDir;
         _ -> ""
