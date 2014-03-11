@@ -56,6 +56,13 @@ get_config_file_arg(Application) ->
         _ -> ""
     end.
 
+get_include_arg(Application) ->
+    IncludeDir = filename:join([Application, "include"]),
+    case filelib:is_dir(IncludeDir) of
+        true -> " -include " ++ IncludeDir;
+        _ -> ""
+    end.
+
 create_slave_args(Application) ->
     SlaveArgs = " -pa .topcat" ++
                 " -pa " ++ create_code_paths("deps/*/ebin") ++
@@ -64,6 +71,7 @@ create_slave_args(Application) ->
                 " -dir " ++ filename:join(Application, ?SUITES) ++
                 " -logdir " ++ Application ++ "/logs/ct" ++
                 " -env TEST_DIR " ++ Application ++
+                get_include_arg(Application) ++
                 get_config_file_arg(Application),
     io:format("SlaveArgs=~p~n", [SlaveArgs]),
     SlaveArgs.
