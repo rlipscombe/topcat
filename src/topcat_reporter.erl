@@ -8,7 +8,7 @@ report_summary(State) ->
     io:format("~p ok, ~p skipped, ~p failed of ~p test ~s~n", [OK, Skipped, Failed, Total, Plural]).
 
 pluralize(1, Singular, _) -> Singular;
-pluralize(_, Plural, _) -> Plural.
+pluralize(_, _, Plural) -> Plural.
 
 report_suite_summary([], Acc) ->
     Acc;
