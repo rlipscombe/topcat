@@ -1,0 +1,8 @@
+{application, topcat,
+    [
+        {description, "rebar ct replacement"},
+        {vsn, 1},
+        {registered, []},
+        {applications, [kernel, stdlib]},
+        {env, []}
+        ]}.

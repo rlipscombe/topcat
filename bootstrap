@@ -11,7 +11,8 @@ main(_Args) ->
     end,
 
     % Zip up the beam files.
-    Files = read_files("*.beam", "ebin"),
+    Files = read_files("*.beam", "ebin") ++
+            read_files("*.app", "ebin"),
     case zip:create("mem", Files, [memory]) of
         {ok, {"mem", ZipBin}} ->
             Sections = [shebang,
