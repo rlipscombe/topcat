@@ -32,6 +32,9 @@ handle_call({tc_group_results, Results}, _From, State) ->
     %io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
     NewState = collect_results(Results, State),
     {reply, ok, NewState};
+handle_call({on_tc_fail, _TestcaseName, _Status}, _From, State) ->
+    % Ignore it.
+    {reply, ok, State};
 handle_call(Request, _From, State) ->
     io:format("topcat_server:handle_call(Request=~p~n)", [Request]),
     {reply, ok, State}.
