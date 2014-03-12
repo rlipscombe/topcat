@@ -38,7 +38,11 @@ pre_init_per_testcase(TestcaseName, InitData, State) ->
 post_end_per_testcase(TestcaseName, Config, _Return, State) ->
     Status = ?config(tc_status, Config),
     notify({post_end_per_testcase, TestcaseName, Status}),
-    {Config, State}.
+    NewReturn = case Status of
+        {skipped, {failed, _} = Reason} -> {fail, {skipped, Reason}};
+        _ -> Config
+    end,
+    {NewReturn, State}.
 
 post_end_per_suite(_SuiteName, Config, _Return, State) ->
     Status = ?config(tc_group_result, Config),
