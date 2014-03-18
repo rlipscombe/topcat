@@ -40,6 +40,7 @@ port_loop(Port) ->
             io:format("~s~n", [Data]),
             port_loop(Port);
         {Port, {exit_status, _Status}} ->
+            %% @todo Do something with the exit status...?
             ok;
         Other ->
             io:format("~p~n", [Other]),
