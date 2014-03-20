@@ -102,6 +102,14 @@ report_error(Error) ->
 report_error(Format, Args) ->
     io:format(?red("~s\n"), [lists:flatten(io_lib:format(Format, Args))]).
 
-report_coverage(_Event = {Module, {Cov, NotCov}}) ->
-    Pct = trunc((100 * Cov) / (Cov + NotCov)),
-    io:format(?cyan("~s : ~B%\n"), [Module, Pct]).
+report_coverage(Coverage) -> 
+    Len = lists:max(lists:map(
+                fun({Module, {_, _}}) ->
+                        length(atom_to_list(Module))
+                end, Coverage)),
+    lists:foreach(
+        fun({Module, {Cov, NotCov}}) ->
+                Pct = trunc((100 * Cov) / (Cov + NotCov)),
+                PaddedModule = string:left(atom_to_list(Module), Len, $\s),
+                io:format(?cyan("~s : ~B%\n"), [PaddedModule, Pct])
+        end, Coverage).

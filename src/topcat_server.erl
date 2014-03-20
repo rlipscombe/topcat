@@ -6,6 +6,11 @@
 -define(SERVER, topcat).
 -define(NODE, 'topcat@localhost').
 
+-record(state, {
+        coverage,
+        results
+        }).
+
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
@@ -18,11 +23,12 @@ notify(Event) ->
     gen_server:call(ServerRef, Event).
 
 init([]) ->
-    State = [],
+    State = #state{coverage = [], results = []},
     {ok, State}.
 
 handle_call(stop, _From, State) ->
-    topcat_reporter:report_summary(State),
+    topcat_reporter:report_coverage(State#state.coverage),
+    topcat_reporter:report_summary(State#state.results),
     {reply, ok, State};
 handle_call({pre_init_per_suite, SuiteName}, _From, State) ->
     topcat_reporter:report_suite_starts(SuiteName),
@@ -50,8 +56,8 @@ handle_call({error, Reason}, _From, State) ->
     topcat_reporter:report_error(Reason),
     {reply, ok, State};
 handle_call({coverage, Event}, _From, State) ->
-    topcat_reporter:report_coverage(Event),
-    {reply, ok, State};
+    NewState = collect_coverage(Event, State),
+    {reply, ok, NewState};
 handle_call(Request, _From, State) ->
     io:format("topcat_server:handle_call(Request=~p~n)", [Request]),
     {reply, ok, State}.
@@ -67,8 +73,11 @@ handle_info(Info, State) ->
 % Results is a proplist: [{ok, OK}, {skipped, Skipped}, {failed, Failed}].
 % Where OK, Skipped, Failed are [{suite, tc}, ...]
 % Not sure what we want, so this'll do for now.
-collect_results(Results, State) ->
-    [Results | State].
+collect_results(Results, State = #state{results = Results0}) ->
+    State#state{results = [Results | Results0]}.
+
+collect_coverage(Event, State = #state{coverage = Coverage0}) ->
+    State#state{coverage = [Event | Coverage0]}.
 
 terminate(_Reason, _State) ->
     ok.

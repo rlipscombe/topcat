@@ -5,7 +5,6 @@
 tidy_spec(Path, NewPath) ->
     {ok, Specs} = file:consult(Path),
     NewSpecs = tidy_specs(Specs),
-    io:format("NewSpecs ~p\n", [NewSpecs]),
     write_specs(NewPath, NewSpecs).
 
 tidy_specs(Specs) ->
