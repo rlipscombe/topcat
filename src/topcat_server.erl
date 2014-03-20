@@ -49,6 +49,9 @@ handle_call({make_error, Results}, _From, State) ->
 handle_call({error, Reason}, _From, State) ->
     topcat_reporter:report_error(Reason),
     {reply, ok, State};
+handle_call({coverage, Event}, _From, State) ->
+    topcat_reporter:report_coverage(Event),
+    {reply, ok, State};
 handle_call(Request, _From, State) ->
     io:format("topcat_server:handle_call(Request=~p~n)", [Request]),
     {reply, ok, State}.

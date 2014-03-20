@@ -1,7 +1,8 @@
 -module(topcat_reporter).
 -export([report_summary/1,
          report_suite_starts/1, report_testcase_starts/1, report_testcase_ends/2,
-         report_make_error/1, report_error/1, report_error/2]).
+         report_make_error/1, report_error/1, report_error/2,
+         report_coverage/1]).
 
 report_summary(State) ->
     {OK, Skipped, Failed} = lists:foldl(fun report_suite_summary/2, {0, 0, 0}, State),
@@ -100,3 +101,7 @@ report_error(Error) ->
 
 report_error(Format, Args) ->
     io:format(?red("~s\n"), [lists:flatten(io_lib:format(Format, Args))]).
+
+report_coverage(_Event = {Module, {Cov, NotCov}}) ->
+    Pct = trunc((100 * Cov) / (Cov + NotCov)),
+    io:format(?cyan("~s : ~B%\n"), [Module, Pct]).
