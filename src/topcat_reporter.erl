@@ -85,6 +85,9 @@ report_make_error([{ok, _ModuleName} | Rest]) ->
 report_make_error([{ok, _ModuleName, Warnings} | Rest]) ->
     lists:foreach(fun report_compiler_warning/1, Warnings),
     report_make_error(Rest);
+report_make_error([{ok, _ModuleName, _Binary, Warnings} | Rest]) ->
+    lists:foreach(fun report_compiler_warning/1, Warnings),
+    report_make_error(Rest);
 report_make_error([{error, Errors, Warnings} | Rest]) ->
     lists:foreach(fun report_compiler_error/1, Errors),
     lists:foreach(fun report_compiler_warning/1, Warnings),
@@ -102,6 +105,8 @@ report_error(Error) ->
 report_error(Format, Args) ->
     io:format(?red("~s\n"), [lists:flatten(io_lib:format(Format, Args))]).
 
+report_coverage([]) ->
+    ok;
 report_coverage(Coverage) -> 
     Len = lists:max(lists:map(
                 fun({Module, {_, _}}) ->
