@@ -1,20 +1,21 @@
 -module(topcat_make).
 -export([dir/1]).
 
-dir(Dir) ->
-    pushd(Dir, fun() -> make() end).
-
-%% @todo ct_make uses compile:file; we could do the same?
 %% @todo Get compiler options from somewhere?
-make() ->
-    %% @todo Options.
-    make:all().
+dir(Dir) ->
+    Sources = [filename:join(Dir, F) || F <- filelib:wildcard("*.erl", Dir)],
+    files(Sources).
 
-pushd(Dir, Fun) ->
-    {ok, Cwd} = file:get_cwd(),
-    file:set_cwd(Dir),
+%% @doc This will return a list of {error, Errors, Warnings} tuples, if there
+%% are any errors or warnings.
+%% Error is {Filename, [{LineNum,CompilerStage,Message}]}
+files(Files) ->
+    compile_files(Files, []).
 
-    Result = Fun(),
-
-    file:set_cwd(Cwd),
-    Result.
+compile_files([], Acc) ->
+    lists:reverse(Acc);
+compile_files([F|Files], Acc) ->
+    Options = [debug_info, warnings_as_errors,
+               return_errors, return_warnings],
+    Result = compile:file(F, Options),
+    compile_files(Files, [Result | Acc]).

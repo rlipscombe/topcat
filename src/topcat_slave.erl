@@ -8,15 +8,7 @@ start() ->
     {ok, [[TestDir]]} = init:get_argument(dir),
     {ok, [[LogDir]]} = init:get_argument(logdir),
 
-    %% @todo Tidy this up.
-    %% @todo Also capture the output?
-    case topcat_make:dir(TestDir) of
-        ok ->
-            ok;
-        Error ->
-            io:format("make = ~p\n", [Error]),
-            erlang:halt(1)
-    end,
+    handle_make_result(topcat_make:dir(TestDir)),
 
     Opts = [
             {dir, filename:absname(TestDir)},
@@ -24,12 +16,16 @@ start() ->
             {ct_hooks, Hooks}],
 
     %% @todo Tidy this up
-    case ct:run_test(Opts) of
-        {_Ok, _Failed, {_UserSkipped, _AutoSkipped}} ->
-            erlang:halt(0);     % ??
-        {error, Reason} ->
-            io:format("run_test = ~p\n", [Reason]),
-            erlang:halt(1);
-        _RunnerPid ->
-            erlang:error(unexpected)
-    end.
+    handle_run_test_result(ct:run_test(Opts)).
+
+handle_make_result(ok) ->
+    ok;
+handle_make_result(Error) ->
+    topcat_server:notify({make_error, Error}),
+    erlang:halt(1).
+
+handle_run_test_result({_Ok, _Failed, {_UserSkipped, _AutoSkipped}}) ->
+    erlang:halt(0);
+handle_run_test_result({error, Reason}) ->
+    topcat_server:notify({error, Reason}),
+    erlang:halt(1).

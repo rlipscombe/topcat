@@ -1,13 +1,21 @@
 -module(topcat_server).
--export([start_link/0, stop/0]).
+-export([start_link/0, stop/0, notify/1]).
 -behaviour(gen_server).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
+-define(SERVER, topcat).
+-define(NODE, 'topcat@localhost').
+
 start_link() ->
-    gen_server:start_link({local, topcat}, ?MODULE, [], []).
+    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 stop() ->
-    gen_server:call(topcat, stop).
+    gen_server:call(?SERVER, stop).
+
+%% @doc Called from the slave.
+notify(Event) ->
+    ServerRef = {?SERVER, ?NODE},
+    gen_server:call(ServerRef, Event).
 
 init([]) ->
     State = [],
@@ -34,6 +42,12 @@ handle_call({tc_group_results, Results}, _From, State) ->
     {reply, ok, NewState};
 handle_call({on_tc_fail, _TestcaseName, _Status}, _From, State) ->
     % Ignore it.
+    {reply, ok, State};
+handle_call({make_error, Results}, _From, State) ->
+    topcat_reporter:report_make_error(Results),
+    {reply, ok, State};
+handle_call({error, Reason}, _From, State) ->
+    topcat_reporter:report_error(Reason),
     {reply, ok, State};
 handle_call(Request, _From, State) ->
     io:format("topcat_server:handle_call(Request=~p~n)", [Request]),

@@ -1,11 +1,13 @@
 -module(topcat_reporter).
--export([report_summary/1, report_suite_starts/1, report_testcase_starts/1, report_testcase_ends/2]).
+-export([report_summary/1,
+         report_suite_starts/1, report_testcase_starts/1, report_testcase_ends/2,
+         report_make_error/1, report_error/1]).
 
 report_summary(State) ->
     {OK, Skipped, Failed} = lists:foldl(fun report_suite_summary/2, {0, 0, 0}, State),
     Total = OK + Skipped + Failed,
     Plural = pluralize(Total, "case", "cases"),
-    io:format("~p ok, ~p skipped, ~p failed of ~p test ~s~n", [OK, Skipped, Failed, Total, Plural]).
+    io:format("~p ok, ~p skipped, ~p failed of ~p test ~s\n", [OK, Skipped, Failed, Total, Plural]).
 
 pluralize(1, Singular, _) -> Singular;
 pluralize(_, _, Plural) -> Plural.
@@ -30,42 +32,63 @@ report_tests(failed, Tests, {OK, Skipped, Failed}) ->
     {OK, Skipped, Failed + N}.
 
 %report_ok_test(SuiteName, TestcaseName) ->
-%    io:format("\e[0;92m~p.~p: OK\e[0m~n", [SuiteName, TestcaseName]).
+%    io:format("\e[0;92m~p.~p: OK\e[0m\n", [SuiteName, TestcaseName]).
+
+-define(red(X), "\e[0;91m" ++ X ++ "\e[0m").
+-define(green(X), "\e[0;92m" ++ X ++ "\e[0m").
+-define(yellow(X), "\e[0;93m" ++ X ++ "\e[0m").
+-define(cyan(X), "\e[0;96m" ++ X ++ "\e[0m").
 
 report_skipped_test(SuiteName, TestcaseName) ->
-    io:format("\e[0;93m~p.~p: Skipped\e[0m~n", [SuiteName, TestcaseName]).
+    io:format(?yellow("~p.~p: Skipped\n"), [SuiteName, TestcaseName]).
 
 report_failed_test(SuiteName, TestcaseName) ->
-    io:format("\e[0;91m~p.~p: Failed\e[0m~n", [SuiteName, TestcaseName]).
+    io:format(?red("~p.~p: Failed\n"), [SuiteName, TestcaseName]).
 
 report_suite_starts(SuiteName) ->
-    io:format("\e[0;96m~p...\e[0m~n", [SuiteName]).
+    io:format(?cyan("~p...\n"), [SuiteName]).
 
 report_testcase_starts(TestcaseName) ->
-    io:format("  \e[0;96m~p...\e[0m~n", [TestcaseName]).
+    io:format(?cyan("  ~p...\n"), [TestcaseName]).
 
 report_testcase_ends(TestcaseName, ok) ->
-    io:format("  \e[0;96m~p: \e[0;92m~s\e[0m~n", [TestcaseName, "OK"]);
+    io:format(?cyan("  ~p: ") ?green("~s\n"), [TestcaseName, "OK"]);
 report_testcase_ends(TestcaseName, skipped) ->
-    io:format("  \e[0;96m~p: \e[0;93m~s\e[0m~n", [TestcaseName, "Skipped"]);
+    io:format(?cyan("  ~p: ") ?yellow("~s\n"), [TestcaseName, "Skipped"]);
 report_testcase_ends(TestcaseName, {skipped, {failed, {_SuiteName, SetupName, {Reason, Stacktrace}}}}) ->
     % Skipped because init failed.
-    io:format("  \e[0;96m~p: \e[0;91m~s (~s Failed)\e[0m~n", [TestcaseName, "Skipped", SetupName]),
-    io:format("  ~p~n", [Reason]),
+    io:format(?cyan("  ~p: ") ?red("~s (~s Failed)\n"), [TestcaseName, "Skipped", SetupName]),
+    io:format("  ~p\n", [Reason]),
     report_stacktrace(Stacktrace);
 report_testcase_ends(TestcaseName, failed) ->
-    io:format("  \e[0;96m~p: \e[0;91m~s\e[0m~n", [TestcaseName, "Failed"]);
+    io:format(?cyan("  ~p: ") ?red("~s\n"), [TestcaseName, "Failed"]);
 report_testcase_ends(TestcaseName, Status) ->
-    io:format("  \e[0;96m~p: \e[0;91m~p\e[0m~n", [TestcaseName, Status]).
+    io:format(?cyan("  ~p: ") ?red("~p\n"), [TestcaseName, Status]).
 
 report_stacktrace(Stacktrace) ->
     [report_stackframe(Frame) || Frame <- Stacktrace].
 
 report_stackframe({Module, Function, [], _}) ->
-    io:format("  at ~p:~p~n",
+    io:format("  at ~p:~p\n",
               [Module, Function]);
 report_stackframe({Module, Function, Arity, Location}) ->
     File = proplists:get_value(file, Location, undefined),
     Line = proplists:get_value(line, Location, 0),
-    io:format("  at ~p:~p/~p (~s:~p)~n",
+    io:format("  at ~p:~p/~p (~s:~p)\n",
               [Module, Function, Arity, File, Line]).
+
+report_make_error([]) ->
+    ok;
+report_make_error([{error, Errors, Warnings} | Rest]) ->
+    lists:foreach(fun(Error) -> report_compiler_error(Error) end, Errors),
+    lists:foreach(fun(Warning) -> report_compiler_warning(Warning) end, Warnings),
+    report_make_error(Rest).
+
+report_compiler_warning(_Warning = {Filename, [{LineNumber, CompilerStage, Message}]}) ->
+    io:format(?yellow("~s:~B: ~s\n"), [Filename, LineNumber, lists:flatten(CompilerStage:format_error(Message))]).
+
+report_compiler_error(_Error = {Filename, [{LineNumber, CompilerStage, Message}]}) ->
+    io:format(?red("~s:~B: ~s\n"), [Filename, LineNumber, lists:flatten(CompilerStage:format_error(Message))]).
+
+report_error(Error) ->
+    io:format(?red("~p\n"), [Error]).

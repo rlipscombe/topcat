@@ -16,28 +16,28 @@ init(_Id, _Opts) ->
     {ok, State}.
 
 pre_init_per_suite(SuiteName, InitData, State) ->
-    notify({pre_init_per_suite, SuiteName}),
+    topcat_server:notify({pre_init_per_suite, SuiteName}),
     {InitData, State}.
 
 post_init_per_suite(SuiteName, Config, Return, State) ->
-    notify({post_init_per_suite, SuiteName, Config, Return}),
+    topcat_server:notify({post_init_per_suite, SuiteName, Config, Return}),
     {Config, State}.
 
 on_tc_fail(TestcaseName, Reason, State) ->
-    notify({on_tc_fail, TestcaseName, Reason}),
+    topcat_server:notify({on_tc_fail, TestcaseName, Reason}),
     State.
 
 on_tc_skip(TestcaseName, Reason, State) ->
-    notify({on_tc_skip, TestcaseName, Reason}),
+    topcat_server:notify({on_tc_skip, TestcaseName, Reason}),
     State.
 
 pre_init_per_testcase(TestcaseName, InitData, State) ->
-    notify({pre_init_per_testcase, TestcaseName}),
+    topcat_server:notify({pre_init_per_testcase, TestcaseName}),
     {InitData, State}.
 
 post_end_per_testcase(TestcaseName, Config, _Return, State) ->
     Status = ?config(tc_status, Config),
-    notify({post_end_per_testcase, TestcaseName, Status}),
+    topcat_server:notify({post_end_per_testcase, TestcaseName, Status}),
     NewReturn = case Status of
         {skipped, {failed, _} = Reason} -> {fail, {skipped, Reason}};
         _ -> Config
@@ -46,9 +46,5 @@ post_end_per_testcase(TestcaseName, Config, _Return, State) ->
 
 post_end_per_suite(_SuiteName, Config, _Return, State) ->
     Status = ?config(tc_group_result, Config),
-    notify({tc_group_results, Status}),
+    topcat_server:notify({tc_group_results, Status}),
     {Config, State}.
-
-notify(Request) ->
-    ServerRef = {topcat, 'topcat@localhost'},
-    gen_server:call(ServerRef, Request).
