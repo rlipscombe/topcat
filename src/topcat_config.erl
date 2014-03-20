@@ -1,5 +1,5 @@
 -module(topcat_config).
--export([get_config/1, get_ct_dir/1, get_cover_enabled/1]).
+-export([get_config/1, get_ct_dir/1, get_cover_enabled/1, get_ct_extra_params/1]).
 
 -define(DEFAULT_CT_DIR, "tests").
 -define(DEFAULT_COVER_ENABLED, false).
@@ -20,6 +20,9 @@ get_ct_dir(Config) ->
 
 get_cover_enabled(Config) ->
     get_config_value(cover_enabled, Config, ?DEFAULT_COVER_ENABLED).
+
+get_ct_extra_params(Config) ->
+    get_config_value(ct_extra_params, Config, "").
 
 get_config_result({ok, Config}) ->
     Config;

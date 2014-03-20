@@ -38,18 +38,19 @@ run_suites(Application) ->
     Config = topcat_config:get_config(Application),
     CtDir = topcat_config:get_ct_dir(Config),
     CoverEnabled = topcat_config:get_cover_enabled(Config),
+    CtExtraParams = topcat_config:get_ct_extra_params(Config),
 
     TestDir = filename:join(Application, CtDir),
     case filelib:is_dir(TestDir) of
         true ->
-            run_port(Application, CtDir, CoverEnabled);
+            run_port(Application, CtDir, CoverEnabled, CtExtraParams);
         _ ->
             io:format("Skipping ~s\n", [Application]),
             ok
     end.
 
-run_port(Application, CtDir, CoverEnabled) ->
-    SlaveArgs = topcat_args:create_slave_args(Application, CtDir, CoverEnabled),
+run_port(Application, CtDir, CoverEnabled, CtExtraParams) ->
+    SlaveArgs = topcat_args:create_slave_args(Application, CtDir, CoverEnabled, CtExtraParams),
     Cmd = "erl -noshell -noinput -sname topcat_child@localhost" ++
           SlaveArgs,
     io:format("~s\n", [Cmd]),

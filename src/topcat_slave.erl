@@ -21,7 +21,7 @@ start() ->
     Opts = [{dir, filename:absname(TestDir)},
             {logdir, filename:absname(LogDir)},
             {ct_hooks, Hooks},
-            {auto_compile, false}] ++ CoverOpts,
+            {auto_compile, true}] ++ CoverOpts,
 
     handle_run_test_result(ct:run_test(Opts)),
     CoverDataFile = get_cover_data_file(CoverOpts),
