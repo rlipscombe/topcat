@@ -1,7 +1,7 @@
 -module(topcat_reporter).
 -export([report_summary/1,
          report_suite_starts/1, report_testcase_starts/1, report_testcase_ends/2,
-         report_make_error/1, report_error/1]).
+         report_make_error/1, report_error/1, report_error/2]).
 
 report_summary(State) ->
     {OK, Skipped, Failed} = lists:foldl(fun report_suite_summary/2, {0, 0, 0}, State),
@@ -74,7 +74,7 @@ report_stackframe({Module, Function, [], _}) ->
 report_stackframe({Module, Function, Arity, Location}) ->
     File = proplists:get_value(file, Location, undefined),
     Line = proplists:get_value(line, Location, 0),
-    io:format("  at ~p:~p/~p (~s:~p)\n",
+    io:format("  at ~p:~p/~p (~s:~B)\n",
               [Module, Function, Arity, File, Line]).
 
 report_make_error([]) ->
@@ -97,3 +97,6 @@ report_compiler_error(_Error = {Filename, [{LineNumber, CompilerStage, Message}]
 
 report_error(Error) ->
     io:format(?red("~p\n"), [Error]).
+
+report_error(Format, Args) ->
+    io:format(?red("~s\n"), [lists:flatten(io_lib:format(Format, Args))]).

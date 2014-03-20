@@ -21,12 +21,17 @@ start() ->
 
 handle_make_result(ok) ->
     ok;
-handle_make_result(Error) ->
-    topcat_server:notify({make_error, Error}),
-    erlang:halt(1).
+handle_make_result(Results) ->
+    topcat_server:notify({make_error, Results}),
+    lists:foreach(fun check_make_result/1, Results).
+
+check_make_result({ok, _}) -> ok;
+check_make_result({ok, _, _}) -> ok;
+check_make_result({ok, _, _, _}) -> ok;
+check_make_result(_) -> topcat:halt(1).
 
 handle_run_test_result({_Ok, _Failed, {_UserSkipped, _AutoSkipped}}) ->
-    erlang:halt(0);
+    topcat:halt(0);
 handle_run_test_result({error, Reason}) ->
     topcat_server:notify({error, Reason}),
-    erlang:halt(1).
+    topcat:halt(1).
