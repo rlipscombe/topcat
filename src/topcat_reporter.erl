@@ -79,9 +79,14 @@ report_stackframe({Module, Function, Arity, Location}) ->
 
 report_make_error([]) ->
     ok;
+report_make_error([{ok, _ModuleName} | Rest]) ->
+    report_make_error(Rest);
+report_make_error([{ok, _ModuleName, Warnings} | Rest]) ->
+    lists:foreach(fun report_compiler_warning/1, Warnings),
+    report_make_error(Rest);
 report_make_error([{error, Errors, Warnings} | Rest]) ->
-    lists:foreach(fun(Error) -> report_compiler_error(Error) end, Errors),
-    lists:foreach(fun(Warning) -> report_compiler_warning(Warning) end, Warnings),
+    lists:foreach(fun report_compiler_error/1, Errors),
+    lists:foreach(fun report_compiler_warning/1, Warnings),
     report_make_error(Rest).
 
 report_compiler_warning(_Warning = {Filename, [{LineNumber, CompilerStage, Message}]}) ->
