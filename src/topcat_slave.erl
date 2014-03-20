@@ -13,7 +13,8 @@ start() ->
     Opts = [
             {dir, filename:absname(TestDir)},
             {logdir, filename:absname(LogDir)},
-            {ct_hooks, Hooks}],
+            {ct_hooks, Hooks},
+            {auto_compile, false}],
 
     %% @todo Tidy this up
     handle_run_test_result(ct:run_test(Opts)).
