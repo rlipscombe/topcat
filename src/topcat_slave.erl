@@ -1,6 +1,7 @@
 -module(topcat_slave).
 -export([start/0]).
 
+%% @doc Entry point.
 start() ->
     % Note that we expect to be started IN the application directory.
     Hooks = [topcat_cth],
@@ -9,10 +10,8 @@ start() ->
     {ok, [[TestDir]]} = init:get_argument(dir),
     {ok, [[LogDir]]} = init:get_argument(logdir),
     
-    CoverOpts = case init:get_argument(cover) of
-        {ok, [[CoverSpec]]} -> get_cover_opts(CoverSpec, LogDir);
-        _ -> []
-    end,
+    CoverOpts = get_cover_opts(),
+    FilterOpts = get_filter_opts(),
 
     handle_make_result(topcat_make:dir(TestDir)),
 
@@ -21,7 +20,9 @@ start() ->
     Opts = [{dir, filename:absname(TestDir)},
             {logdir, filename:absname(LogDir)},
             {ct_hooks, Hooks},
-            {auto_compile, false}] ++ CoverOpts,
+            {auto_compile, false}] ++ FilterOpts ++ CoverOpts,
+
+    io:format("Opts ~p\n", [Opts]),
 
     handle_run_test_result(ct:run_test(Opts)),
     CoverDataFile = get_cover_data_file(CoverOpts),
@@ -46,6 +47,24 @@ print_coverage(CoverDataFile) ->
 get_temp_cover_spec(LogDir) ->
     filename:absname(filename:join(LogDir, ".cover.spec")).
 
+get_filter_opts() ->
+    get_filter_opts(suite, suite) ++
+    get_filter_opts(group, group) ++
+    get_filter_opts('case', testcase).
+
+get_filter_opts(Flag, Key) ->
+    case init:get_argument(Flag) of
+        {ok, [Values]} -> [{Key, [list_to_atom(V) || V <- Values]}];
+        _ -> []
+    end.
+
+get_cover_opts() ->
+    {ok, [[LogDir]]} = init:get_argument(logdir),
+    case init:get_argument(cover) of
+        {ok, [[CoverSpec]]} -> get_cover_opts(CoverSpec, LogDir);
+        _ -> []
+    end.
+
 get_cover_opts(CoverSpec, LogDir) ->
     TempCoverSpec = get_temp_cover_spec(LogDir),
     topcat_cover:tidy_spec(CoverSpec, TempCoverSpec),
@@ -67,3 +86,4 @@ handle_run_test_result({_Ok, _Failed, {_UserSkipped, _AutoSkipped}}) ->
 handle_run_test_result({error, Reason}) ->
     topcat_server:notify({error, Reason}),
     topcat:halt(1).
+

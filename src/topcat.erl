@@ -6,13 +6,19 @@
 main(Argv) ->
     Args = topcat_args:parse_args(Argv),
     AppFilter = topcat_args:get_all_arguments(app, Args),
+    
+    SuiteFilter = topcat_args:get_all_arguments(suite, Args),
+    GroupFilter = topcat_args:get_all_arguments(group, Args),
+    TestCaseFilter = topcat_args:get_all_arguments('case', Args),
+    Opts = [{suite, SuiteFilter}, {group, GroupFilter}, {'case', TestCaseFilter}],
+    io:format("Opts ~p\n", [Opts]),
 
     topcat_archive:extract_beams(?TEMP_FOLDER),
 
     {ok, _} = topcat_server:start_link(),
 
     Applications = get_applications(AppFilter),
-    Result = run(Applications),
+    Result = run(Applications, Opts),
     topcat_server:stop(),
     halt_for(Result).
 
@@ -30,16 +36,16 @@ get_applications([]) ->
 get_applications(Filter) ->
     ["apps/" ++ A || A <- filelib:wildcard("*", "apps"), lists:member(A, Filter)].
 
-run([]) ->
+run([], _Opts) ->
     ok;
-run([Application|Rest]) ->
+run([Application|Rest], Opts) ->
     io:format("run ~s\n", [Application]),
-    case run_suites(Application) of
-        ok -> run(Rest);
+    case run_suites(Application, Opts) of
+        ok -> run(Rest, Opts);
         Error -> Error
     end.
 
-run_suites(Application) ->
+run_suites(Application, Opts) ->
     Config = topcat_config:get_config(Application),
     CtDir = topcat_config:get_ct_dir(Config),
     CoverEnabled = topcat_config:get_cover_enabled(Config),
@@ -47,21 +53,21 @@ run_suites(Application) ->
     TestDir = filename:join(Application, CtDir),
     case filelib:is_dir(TestDir) of
         true ->
-            run_port(Application, CtDir, CoverEnabled);
+            run_port(Application, Opts, CtDir, CoverEnabled);
         _ ->
             io:format("Skipping ~s\n", [Application]),
             ok
     end.
 
-run_port(Application, CtDir, CoverEnabled) ->
-    SlaveArgs = topcat_args:create_slave_args(Application, CtDir, CoverEnabled),
+run_port(Application, Opts, CtDir, CoverEnabled) ->
+    SlaveArgs = topcat_slave_args:create_slave_args(Application, Opts, CtDir, CoverEnabled),
     Cmd = "erl -noshell -noinput -sname topcat_child@localhost" ++
           SlaveArgs,
     io:format("~s\n", [Cmd]),
-    Opts = [exit_status,
+    PortOpts = [exit_status,
             {line, 16384}, use_stdio, stderr_to_stdout, hide,
             {cd, Application}],
-    Port = erlang:open_port({spawn, Cmd}, Opts),
+    Port = erlang:open_port({spawn, Cmd}, PortOpts),
     port_loop(Port).
 
 port_loop(Port) ->
