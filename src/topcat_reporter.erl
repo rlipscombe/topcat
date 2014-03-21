@@ -108,13 +108,32 @@ report_error(Format, Args) ->
 report_coverage([]) ->
     ok;
 report_coverage(Coverage) -> 
-    Len = lists:max(lists:map(
-                fun({Module, {_, _}}) ->
-                        length(atom_to_list(Module))
-                end, Coverage)),
+    Len = get_max_module_name_len(Coverage),
+    Coverage2 = sort_by_pct_covered(Coverage),
+    print_coverage(Len, Coverage2).
+
+get_max_module_name_len(Coverage) ->
+    lists:max(lists:map(
+            fun({Module, {_, _}}) ->
+                    length(atom_to_list(Module))
+            end, Coverage)).
+
+sort_by_pct_covered(Coverage) ->
+    lists:sort(
+        fun({_, {CovA, NotCovA}}, {_, {CovB, NotCovB}}) ->
+                get_coverage_pct(CovB, NotCovB) =< get_coverage_pct(CovA, NotCovA) 
+        end, Coverage).
+
+%sort_by_module_name(Coverage) ->
+%    lists:sort(fun({A, _}, {B, _}) -> A =< B end, Coverage).
+
+get_coverage_pct(Cov, NotCov) ->
+    trunc((100 * Cov) / (Cov + NotCov)).
+
+print_coverage(Len, Coverage) ->
     lists:foreach(
         fun({Module, {Cov, NotCov}}) ->
-                Pct = trunc((100 * Cov) / (Cov + NotCov)),
+                Pct = get_coverage_pct(Cov, NotCov),
                 PaddedModule = string:left(atom_to_list(Module), Len, $\s),
                 io:format(?cyan("~s : ~B%\n"), [PaddedModule, Pct])
         end, Coverage).
