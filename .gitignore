@@ -2,3 +2,4 @@ ebin/
 topcat
 .topcat/
 erl_crash.dump
+.eunit/

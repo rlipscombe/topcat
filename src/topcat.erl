@@ -3,7 +3,9 @@
 
 -define(TEMP_FOLDER, ".topcat").
 
-main(_Args) ->
+main(Argv) ->
+    Args = topcat_args:parse_args(Argv),
+
     topcat_archive:extract_beams(?TEMP_FOLDER),
 
     {ok, _} = topcat_server:start_link(),
