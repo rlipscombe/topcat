@@ -1,5 +1,5 @@
 -module(topcat_args).
--export([parse_args/1, create_slave_args/3]).
+-export([parse_args/1, get_all_arguments/2, create_slave_args/3]).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
@@ -28,6 +28,10 @@ add_switch({}, Acc) ->
     Acc;
 add_switch({Key, Vals}, Acc) ->
     [{Key, lists:reverse(Vals)} | Acc].
+
+%% @doc Search Args for Key, collecting the values together into a single list.
+get_all_arguments(Key, Args) ->
+    lists:append(proplists:get_all_values(Key, Args)).
 
 create_slave_args(Application, CtDir, CoverEnabled) ->
     LogDir = "logs/ct",
@@ -125,5 +129,17 @@ parse_args_test_() ->
          ?test(
                 [{a, []}, {b, ["B"]}, {c, ["C", "D"]}, {q, ["P"]}, {e, ["F"]}, {e, ["G"]}, {q, ["Q"]}, {z, []}],
                 "-a -b B -c C D -q P -e F -e G -q Q -z")}
+        ].
+
+get_all_arguments_test_() ->
+    [
+        ?_assertMatch([], get_all_arguments(key, [])),
+        ?_assertMatch([], get_all_arguments(other, [{key, ["value"]}])),
+        ?_assertMatch(["bar"], get_all_arguments(foo, [{foo, ["bar"]}])),
+        ?_assertMatch(["bar", "baz"], get_all_arguments(foo, [{foo, ["bar"]}, {foo, ["baz"]}])),
+        ?_assertMatch(["bar", "baz"], get_all_arguments(foo, [{foo, ["bar", "baz"]}])),
+
+        ?_assertMatch(["bar", "baz", "quux"],
+                      get_all_arguments(foo, [{foo, ["bar"]}, {key, "value"}, {foo, ["baz", "quux"]}]))
         ].
 -endif.

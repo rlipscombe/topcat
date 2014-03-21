@@ -5,12 +5,13 @@
 
 main(Argv) ->
     Args = topcat_args:parse_args(Argv),
+    AppFilter = topcat_args:get_all_arguments(app, Args),
 
     topcat_archive:extract_beams(?TEMP_FOLDER),
 
     {ok, _} = topcat_server:start_link(),
 
-    Applications = get_applications(),
+    Applications = get_applications(AppFilter),
     Result = run(Applications),
     topcat_server:stop(),
     halt_for(Result).
@@ -24,8 +25,10 @@ halt_for(_Other) ->
 
 %% @doc Find applications (directories in apps that don't start with a dot).
 %% @todo Use rebar.config instead, and look for 'sub_dirs'.
-get_applications() ->
-    ["apps/" ++ A || A <- filelib:wildcard("*", "apps"), hd(A) =/= $.].
+get_applications([]) ->
+    ["apps/" ++ A || A <- filelib:wildcard("*", "apps"), hd(A) =/= $.];
+get_applications(Filter) ->
+    ["apps/" ++ A || A <- filelib:wildcard("*", "apps"), lists:member(A, Filter)].
 
 run([]) ->
     ok;
