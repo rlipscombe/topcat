@@ -70,6 +70,26 @@ extracted for the Erlang runtime to find them later.
 They go into the `.topcat` folder. You should add it to your `.gitignore` file
 and to your `make clean` target. Other than that, feel free to ignore it.
 
+### Why not just use rebar's escriptize command?
+
+`rebar` has an `escriptize` command, which creates a stand-alone escript
+executable from your source. It does this by packaging your BEAM files into a
+ZIP archive, and then jamming a simple escript header on the front.
+
+Why not use that, instead of unpacking to the ".topcat" directory?
+
+Because, while the Erlang loader supports loading code from ZIP archives, and
+while escript will load code from appended ZIP archives, the Erlang loader
+won't support loading code from ZIP archives appended to escript.
+
+And we need _that_, so that the modules can be loaded into the `topcat_slave`
+node.
+
+This means that the BEAM files have to be extracted somewhere temporarily.
+
+I guess that I could have opted to just write out the ZIP file, rather than
+extract the contents, though...
+
 ## Licensing
 
 Apache 2.0
