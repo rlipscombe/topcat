@@ -63,6 +63,10 @@ report_testcase_ends(TestcaseName, {skipped, {failed, {_SuiteName, SetupName, {R
     report_stacktrace(Stacktrace);
 report_testcase_ends(TestcaseName, failed) ->
     io:format(?cyan("  ~p: ") ?red("~s\n"), [TestcaseName, "Failed"]);
+report_testcase_ends(TestcaseName, {failed, {Reason, Stacktrace}}) ->
+    io:format(?cyan("  ~p: ") ?red("~s\n"), [TestcaseName, "Failed"]),
+    io:format("  ~p\n", [Reason]),
+    report_stacktrace(Stacktrace);
 report_testcase_ends(TestcaseName, Status) ->
     io:format(?cyan("  ~p: ") ?red("~p\n"), [TestcaseName, Status]).
 

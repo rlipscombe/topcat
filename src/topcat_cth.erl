@@ -39,6 +39,7 @@ post_end_per_testcase(TestcaseName, Config, _Return, State) ->
     Status = ?config(tc_status, Config),
     topcat_server:notify({post_end_per_testcase, TestcaseName, Status}),
     NewReturn = case Status of
+        {failed, _} -> {fail, Status};
         {skipped, {failed, _} = Reason} -> {fail, {skipped, Reason}};
         _ -> Config
     end,
