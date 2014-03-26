@@ -1,3 +1,5 @@
+%%% If init_per_testcase fails, the remaining tests are marked as skipped. We
+%%% want them marked as failed.
 -module(init_per_tc_fails_SUITE).
 -include_lib("common_test/include/ct.hrl").
 -compile(export_all).
