@@ -94,10 +94,18 @@ report_make_error([{error, Errors, Warnings} | Rest]) ->
     report_make_error(Rest).
 
 report_compiler_warning(_Warning = {Filename, [{LineNumber, CompilerStage, Message}]}) ->
-    io:format(?yellow("~s:~B: ~s\n"), [Filename, LineNumber, lists:flatten(CompilerStage:format_error(Message))]).
+    io:format(?yellow("~s:~B: ~s\n"), [Filename, line_number(LineNumber), lists:flatten(CompilerStage:format_error(Message))]);
+report_compiler_warning(Warning) ->
+    io:format(?yellow("~p\n"), [Warning]).
 
 report_compiler_error(_Error = {Filename, [{LineNumber, CompilerStage, Message}]}) ->
-    io:format(?red("~s:~B: ~s\n"), [Filename, LineNumber, lists:flatten(CompilerStage:format_error(Message))]).
+    io:format(?red("~s:~B: ~s\n"), [Filename, line_number(LineNumber), lists:flatten(CompilerStage:format_error(Message))]);
+report_compiler_error(Error) ->
+    io:format(?red("~p\n"), [Error]).
+
+line_number(none) -> 0;
+line_number(N) when is_integer(N) -> N;
+line_number(_) -> 0.
 
 report_error(Error) ->
     io:format(?red("~p\n"), [Error]).
