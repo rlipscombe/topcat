@@ -11,7 +11,6 @@ main(Argv) ->
     GroupFilter = topcat_args:get_all_arguments(group, Args),
     TestCaseFilter = topcat_args:get_all_arguments('case', Args),
     Opts = [{suite, SuiteFilter}, {group, GroupFilter}, {'case', TestCaseFilter}],
-    io:format("Opts ~p\n", [Opts]),
 
     topcat_archive:extract_beams(?TEMP_FOLDER),
 

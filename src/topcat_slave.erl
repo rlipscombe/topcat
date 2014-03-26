@@ -22,8 +22,6 @@ start() ->
             {ct_hooks, Hooks},
             {auto_compile, false}] ++ FilterOpts ++ CoverOpts,
 
-    io:format("Opts ~p\n", [Opts]),
-
     handle_run_test_result(ct:run_test(Opts)),
     CoverDataFile = get_cover_data_file(CoverOpts),
     print_coverage(CoverDataFile).
