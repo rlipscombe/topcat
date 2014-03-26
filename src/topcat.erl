@@ -54,7 +54,7 @@ run_suites(Application, Opts) ->
         true ->
             run_port(Application, Opts, CtDir, CoverEnabled);
         _ ->
-            io:format("Skipping ~s\n", [Application]),
+            io:format("~s not found; skipping ~s\n", [TestDir, Application]),
             ok
     end.
 
