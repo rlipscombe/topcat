@@ -5,9 +5,9 @@ create_slave_args(Application, Opts, CtDir, CoverEnabled) ->
     LogDir = "logs/ct",
     TestDir = get_path_for(Application, CtDir),
 
-    SlaveArgs = " -pa .topcat" ++
-                " -pa " ++ create_code_paths("deps/*/ebin") ++
+    SlaveArgs = " -pa " ++ create_code_paths("deps/*/ebin") ++
                 " -pa " ++ create_code_paths("apps/*/ebin") ++
+                " -pa " ++ filename:absname(".topcat") ++
                 " -s topcat_slave -s init stop" ++
                 " -dir " ++ TestDir ++
                 get_suite_arg(Opts) ++
