@@ -1,4 +1,4 @@
--module(app1_app).
+-module(compile_fails_app).
 
 -behaviour(application).
 
@@ -10,7 +10,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    app1_sup:start_link().
+    compile_fails_sup:start_link().
 
 stop(_State) ->
     ok.

@@ -1,4 +1,4 @@
-{application, app1,
+{application, compile_fails,
  [
   {description, ""},
   {vsn, "1"},
@@ -7,6 +7,6 @@
                   kernel,
                   stdlib
                  ]},
-  {mod, { app1_app, []}},
+  {mod, { compile_fails_app, []}},
   {env, []}
  ]}.

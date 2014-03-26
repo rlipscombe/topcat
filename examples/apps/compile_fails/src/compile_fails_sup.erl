@@ -1,5 +1,5 @@
 
--module(app1_sup).
+-module(compile_fails_sup).
 
 -behaviour(supervisor).
 

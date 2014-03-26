@@ -1,2 +1,2 @@
 apps/*/logs/
-apps/*/suites/*.beam
+apps/*/tests/*.beam

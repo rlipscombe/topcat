@@ -5,7 +5,10 @@
 all() -> [should_be_skipped].
 
 init_per_testcase(_TestcaseName, _Config) ->
-    {init_per_testcase, fails} = {testcase, skipped}.
+    assertion = bogus().
+
+bogus() ->
+    bogus.
 
 should_be_skipped(_Config) ->
     ok.
