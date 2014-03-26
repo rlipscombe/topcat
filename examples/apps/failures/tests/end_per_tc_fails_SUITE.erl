@@ -8,6 +8,8 @@ init_per_testcase(_TestcaseName, Config) ->
     Config.
 
 end_per_testcase(_TestcaseName, _Config) ->
+    %% Note that this failure is COMPLETELY eaten by Common Test. topcat_cth
+    %% doesn't get to see it either.
     assertion = bogus().
 
 bogus() ->
