@@ -43,7 +43,6 @@ handle_call({post_end_per_testcase, TestcaseName, Status}, _From, State) ->
     topcat_reporter:report_testcase_ends(TestcaseName, Status),
     {reply, ok, State};
 handle_call({tc_group_results, Results}, _From, State) ->
-    %io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
     NewState = collect_results(Results, State),
     {reply, ok, NewState};
 handle_call({on_tc_fail, _TestcaseName, _Status}, _From, State) ->
@@ -63,7 +62,6 @@ handle_call(Request, _From, State) ->
     {reply, ok, State}.
 
 handle_cast(_Request, State) ->
-    %io:format("topcat_server:handle_cast(Request=~p, State=~p~n)", [Request, State]),
     {noreply, State}.
 
 handle_info(Info, State) ->

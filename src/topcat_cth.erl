@@ -23,13 +23,7 @@ post_init_per_suite(SuiteName, Config, Return, State) ->
     topcat_server:notify({post_init_per_suite, SuiteName, Config, Return}),
     {Config, State}.
 
-on_tc_fail(TestcaseName, Reason, State) ->
-    topcat_server:notify({on_tc_fail, TestcaseName, Reason}),
-    State.
-
-on_tc_skip(TestcaseName, Reason, State) ->
-    topcat_server:notify({on_tc_skip, TestcaseName, Reason}),
-    State.
+%%% @todo pre_init_per_group, post_init_per_group?
 
 pre_init_per_testcase(TestcaseName, InitData, State) ->
     topcat_server:notify({pre_init_per_testcase, TestcaseName}),
@@ -45,7 +39,19 @@ post_end_per_testcase(TestcaseName, Config, _Return, State) ->
     end,
     {NewReturn, State}.
 
+%%% @todo pre_end_per_group, post_end_per_group?
+
+%%% @todo pre_end_per_suite?
+
 post_end_per_suite(_SuiteName, Config, _Return, State) ->
     Status = ?config(tc_group_result, Config),
     topcat_server:notify({tc_group_results, Status}),
     {Config, State}.
+
+on_tc_fail(TestcaseName, Reason, State) ->
+    topcat_server:notify({on_tc_fail, TestcaseName, Reason}),
+    State.
+
+on_tc_skip(TestcaseName, Reason, State) ->
+    topcat_server:notify({on_tc_skip, TestcaseName, Reason}),
+    State.
