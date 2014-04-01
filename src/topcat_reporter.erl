@@ -8,7 +8,8 @@ report_summary(State) ->
     {OK, Skipped, Failed} = lists:foldl(fun report_suite_summary/2, {0, 0, 0}, State),
     Total = OK + Skipped + Failed,
     Plural = pluralize(Total, "case", "cases"),
-    io:format("~p ok, ~p skipped, ~p failed of ~p test ~s\n", [OK, Skipped, Failed, Total, Plural]).
+    io:format("~p ok, ~p skipped, ~p failed of ~p test ~s\n", [OK, Skipped, Failed, Total, Plural]),
+    {OK, Skipped, Failed}.
 
 pluralize(1, Singular, _) -> Singular;
 pluralize(_, _, Plural) -> Plural.

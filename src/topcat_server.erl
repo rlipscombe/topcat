@@ -28,8 +28,8 @@ init([]) ->
 
 handle_call(stop, _From, State) ->
     topcat_reporter:report_coverage(State#state.coverage),
-    topcat_reporter:report_summary(State#state.results),
-    {reply, ok, State};
+    Result = topcat_reporter:report_summary(State#state.results),
+    {reply, Result, State};
 handle_call({pre_init_per_suite, SuiteName}, _From, State) ->
     topcat_reporter:report_suite_starts(SuiteName),
     {reply, ok, State};

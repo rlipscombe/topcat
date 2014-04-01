@@ -18,14 +18,16 @@ main(Argv) ->
 
     Applications = get_applications(AppFilter),
     Result = run(Applications, Opts),
-    topcat_server:stop(),
-    halt_for(Result).
+    Summary = topcat_server:stop(),
+    halt_for(Result, Summary).
 
-halt_for(ok) ->
+halt_for(ok, {_OK, 0, 0}) ->
     topcat:halt(0);
-halt_for({exit_status, Status}) ->
+halt_for(ok, {_OK, _Skipped, _Failed}) ->
+    topcat:halt(1);
+halt_for({exit_status, Status}, _Summary) ->
     topcat:halt(Status);
-halt_for(_Other) ->
+halt_for(_Other, _Summary) ->
     topcat:halt(1).
 
 %% @doc Find applications (directories in apps that don't start with a dot).
