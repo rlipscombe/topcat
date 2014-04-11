@@ -36,10 +36,17 @@ report_tests(failed, Tests, {OK, Skipped, Failed}) ->
 %report_ok_test(SuiteName, TestcaseName) ->
 %    io:format("\e[0;92m~p.~p: OK\e[0m\n", [SuiteName, TestcaseName]).
 
--define(red(X), "\e[0;91m" ++ X ++ "\e[0m").
--define(green(X), "\e[0;92m" ++ X ++ "\e[0m").
--define(yellow(X), "\e[0;93m" ++ X ++ "\e[0m").
--define(cyan(X), "\e[0;96m" ++ X ++ "\e[0m").
+-define(surround_if_colored(Prefix, X, Suffix),
+        begin
+        case application:get_env(topcat, colored) of
+            {ok, ["false"]} -> X;
+            _ -> Prefix ++ X ++ Suffix
+        end
+    end).
+-define(red(X), ?surround_if_colored("\e[0;91m", X, "\e[0m")).
+-define(green(X), ?surround_if_colored("\e[0;92m", X, "\e[0m")).
+-define(yellow(X), ?surround_if_colored("\e[0;93m", X, "\e[0m")).
+-define(cyan(X), ?surround_if_colored("\e[0;96m", X, "\e[0m")).
 
 report_skipped_test(SuiteName, TestcaseName) ->
     io:format(?yellow("~p.~p: Skipped\n"), [SuiteName, TestcaseName]).
@@ -54,22 +61,22 @@ report_testcase_starts(TestcaseName) ->
     io:format(?cyan("  ~p...\n"), [TestcaseName]).
 
 report_testcase_ends(TestcaseName, ok) ->
-    io:format(?cyan("  ~p: ") ?green("~s\n"), [TestcaseName, "OK"]);
+    io:format(?cyan("  ~p: ") ++ ?green("~s\n"), [TestcaseName, "OK"]);
 report_testcase_ends(TestcaseName, skipped) ->
-    io:format(?cyan("  ~p: ") ?yellow("~s\n"), [TestcaseName, "Skipped"]);
+    io:format(?cyan("  ~p: ") ++ ?yellow("~s\n"), [TestcaseName, "Skipped"]);
 report_testcase_ends(TestcaseName, {skipped, {failed, {_SuiteName, SetupName, {Reason, Stacktrace}}}}) ->
     % Skipped because init failed.
-    io:format(?cyan("  ~p: ") ?red("~s (~s Failed)\n"), [TestcaseName, "Skipped", SetupName]),
+    io:format(?cyan("  ~p: ") ++ ?red("~s (~s Failed)\n"), [TestcaseName, "Skipped", SetupName]),
     io:format("  ~p\n", [Reason]),
     report_stacktrace(Stacktrace);
 report_testcase_ends(TestcaseName, failed) ->
-    io:format(?cyan("  ~p: ") ?red("~s\n"), [TestcaseName, "Failed"]);
+    io:format(?cyan("  ~p: ") ++ ?red("~s\n"), [TestcaseName, "Failed"]);
 report_testcase_ends(TestcaseName, {failed, {Reason, Stacktrace}}) ->
-    io:format(?cyan("  ~p: ") ?red("~s\n"), [TestcaseName, "Failed"]),
+    io:format(?cyan("  ~p: ") ++ ?red("~s\n"), [TestcaseName, "Failed"]),
     io:format("  ~p\n", [Reason]),
     report_stacktrace(Stacktrace);
 report_testcase_ends(TestcaseName, Status) ->
-    io:format(?cyan("  ~p: ") ?red("~p\n"), [TestcaseName, Status]).
+    io:format(?cyan("  ~p: ") ++ ?red("~p\n"), [TestcaseName, Status]).
 
 report_stacktrace(Stacktrace) ->
     [report_stackframe(Frame) || Frame <- Stacktrace].

@@ -5,8 +5,10 @@
 
 main(Argv) ->
     Args = topcat_args:parse_args(Argv),
+    [application:set_env(topcat, P, V) || {P, V} <- Args],
+
     AppFilter = topcat_args:get_all_arguments(app, Args),
-    
+
     SuiteFilter = topcat_args:get_all_arguments(suite, Args),
     GroupFilter = topcat_args:get_all_arguments(group, Args),
     TestCaseFilter = topcat_args:get_all_arguments('case', Args),
