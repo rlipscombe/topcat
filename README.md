@@ -29,7 +29,7 @@ This means that, in particular, code coverage actually works.
 Add the following dependency to your top-level rebar.config:
 
     {topcat, ".*",
-      {git, "git://github.com/rlipscombe/topcat.git", {tag, "0.7"}}}
+      {git, "git://github.com/rlipscombe/topcat.git", {tag, "0.9.1"}}}
 
 `rebar compile` will build it for you.
 
