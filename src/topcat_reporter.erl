@@ -148,7 +148,12 @@ sort_by_pct_covered(Coverage) ->
 %    lists:sort(fun({A, _}, {B, _}) -> A =< B end, Coverage).
 
 get_coverage_pct(Cov, NotCov) ->
-    trunc((100 * Cov) / (Cov + NotCov)).
+    get_coverage_pct2(Cov, Cov + NotCov).
+
+get_coverage_pct2(_Num, _Denom = 0) ->
+    0;
+get_coverage_pct2(Num, Denom) ->
+    trunc(100 * Num / Denom).
 
 print_coverage(Len, Coverage) ->
     lists:foreach(
