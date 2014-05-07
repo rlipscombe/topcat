@@ -70,31 +70,7 @@ run_port(Application, Opts, CtDir, CoverEnabled) ->
     PortOpts = [exit_status,
             {line, 16384}, use_stdio, stderr_to_stdout, hide,
             {cd, Application}],
-    Port = erlang:open_port({spawn, Cmd}, PortOpts),
-    port_loop(Port).
-
-port_loop(Port) ->
-    receive
-        % We can occasionally receive 'exit_status' before the final 'data'.
-        % Since we're only printing the output, we can safely ignore the
-        % originator.
-        {_Port, {data, {eol, Data}}} ->
-            io:format("~s\n", [Data]),
-            port_loop(Port);
-        {_Port, {data, {noeol, Data}}} ->
-            io:format("~s", [Data]),
-            port_loop(Port);
-        % 'exit_status' is sent when the process exits (but sometimes before
-        % the final 'data').
-        {Port, {exit_status, 0}} ->
-            ok;
-        {Port, {exit_status, Status}} ->
-            {exit_status, Status};
-        % Otherwise, just print it out.
-        Other ->
-            io:format("~p\n", [Other]),
-            port_loop(Port)
-    end.
+    topcat_port:run(Cmd, PortOpts).
 
 halt(StatusCode) ->
     erlang:halt(StatusCode).

@@ -3,6 +3,7 @@
          report_suite_starts/1, report_testcase_starts/1, report_testcase_ends/2,
          report_make_error/1, report_error/1, report_error/2,
          report_coverage/1]).
+-include("topcat_colored.hrl").
 
 report_summary(State) ->
     {OK, Skipped, Failed} = lists:foldl(fun report_suite_summary/2, {0, 0, 0}, State),
@@ -35,18 +36,6 @@ report_tests(failed, Tests, {OK, Skipped, Failed}) ->
 
 %report_ok_test(SuiteName, TestcaseName) ->
 %    io:format("\e[0;92m~p.~p: OK\e[0m\n", [SuiteName, TestcaseName]).
-
--define(surround_if_colored(Prefix, X, Suffix),
-        begin
-        case application:get_env(topcat, colored) of
-            {ok, ["false"]} -> X;
-            _ -> Prefix ++ X ++ Suffix
-        end
-    end).
--define(red(X), ?surround_if_colored("\e[0;91m", X, "\e[0m")).
--define(green(X), ?surround_if_colored("\e[0;92m", X, "\e[0m")).
--define(yellow(X), ?surround_if_colored("\e[0;93m", X, "\e[0m")).
--define(cyan(X), ?surround_if_colored("\e[0;96m", X, "\e[0m")).
 
 report_skipped_test(SuiteName, TestcaseName) ->
     io:format(?yellow("~p.~p: Skipped\n"), [SuiteName, TestcaseName]).

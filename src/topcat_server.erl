@@ -58,14 +58,14 @@ handle_call({coverage, Event}, _From, State) ->
     NewState = collect_coverage(Event, State),
     {reply, ok, NewState};
 handle_call(Request, _From, State) ->
-    io:format("topcat_server:handle_call(Request=~p~n)", [Request]),
+    io:format("topcat_server:handle_call(Request=~p)\n", [Request]),
     {reply, ok, State}.
 
 handle_cast(_Request, State) ->
     {noreply, State}.
 
 handle_info(Info, State) ->
-    io:format("topcat_server:handle_info(Info=~p, State=~p~n)", [Info, State]),
+    io:format("topcat_server:handle_info(Info=~p, State=~p)\n", [Info, State]),
     {noreply, State}.
 
 % Results is a proplist: [{ok, OK}, {skipped, Skipped}, {failed, Failed}].
