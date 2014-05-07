@@ -22,6 +22,9 @@ start() ->
             {ct_hooks, Hooks},
             {auto_compile, false}] ++ FilterOpts ++ CoverOpts,
 
+    error_logger:delete_report_handler(error_logger_tty_h),
+    error_logger:add_report_handler(error_logger_topcat_h),
+
     handle_run_test_result(ct:run_test(Opts)),
     CoverDataFile = get_cover_data_file(CoverOpts),
     print_coverage(CoverDataFile).
