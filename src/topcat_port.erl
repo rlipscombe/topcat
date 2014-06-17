@@ -6,7 +6,10 @@
         }).
 
 %% @doc Returns ok | {exit_status, S}.
-run(Cmd, Opts) ->
+run(Dir, Cmd) ->
+    Opts = [exit_status,
+            {line, 16384}, use_stdio, stderr_to_stdout, hide,
+            {cd, Dir}],
     Port = erlang:open_port({spawn, Cmd}, Opts),
     loop(Port, #state{}).
 
@@ -25,7 +28,7 @@ loop(Port, State) ->
             {exit_status, Status};
         % Otherwise, just print it out.
         Other ->
-            io:format("~p\n", [Other]),
+            io:format("other: ~p\n", [Other]),
             loop(Port, State)
     end.
 

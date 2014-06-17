@@ -64,13 +64,9 @@ run_suites(Application, Opts) ->
 
 run_port(Application, Opts, CtDir, CoverEnabled) ->
     SlaveArgs = topcat_slave_args:create_slave_args(Application, Opts, CtDir, CoverEnabled),
-    Cmd = "erl -noshell -noinput -sname topcat_child@localhost" ++
-          SlaveArgs,
+    Cmd = "erl -noshell -noinput -sname topcat_child@localhost" ++ SlaveArgs,
     io:format("~s\n", [Cmd]),
-    PortOpts = [exit_status,
-            {line, 16384}, use_stdio, stderr_to_stdout, hide,
-            {cd, Application}],
-    topcat_port:run(Cmd, PortOpts).
+    topcat_port:run(Application, Cmd).
 
 halt(StatusCode) ->
     erlang:halt(StatusCode).
