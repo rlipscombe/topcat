@@ -26,11 +26,37 @@ report({error_report, _GL, {_Pid, supervisor_report, D}} = Event) ->
         _ ->
             error_logger_unknown(Event)
     end;
+report({error_report, _GL, {_Pid, crash_report, [Self, Neighbours]}}) ->
+    {Class, Reason, Trace} = get_value(error_info, Self),
+    Type = format_class(Class),
+    ReasonStr = format_reason({Reason, Trace}),
+    io:format(
+     ?red("Process ~w with ~w neighbours ~s with reason: ~s\n"),
+     [process_name(Self), length(Neighbours), Type, ReasonStr]);
 report(Event) ->
     error_logger_unknown(Event).
-    
+
+format_class(exit) -> "exited";
+format_class(_) -> "crashed".
+
+format_reason({bad_return_value, Val}) ->
+    ["bad return value ", print_val(Val)];
+format_reason({Reason, [{M, F, A, Props}|_]}) when is_atom(M), is_atom(F), is_integer(A), is_list(Props) ->
+    [format_reason(Reason), " in ", format_mfa({M, F, A, Props})];
+format_reason(Reason) ->
+    io_lib:format("~w", [Reason]).
+
+process_name(Process) ->
+    case get_value(registered_name, Process, []) of
+        [] -> get_value(pid, Process);
+        Atom -> Atom
+    end.
+
 error_logger_unknown(Event) ->
     io:format(?yellow("~p\n"), [Event]).
+
+print_val(Val) ->
+    io_lib:format("~w", [Val]).
 
 %%% @doc The rest of this is borrowed from lager's
 %%% error_logger_lager_h, Apache 2.0-licensed.
