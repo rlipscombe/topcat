@@ -44,28 +44,28 @@ report_failed_test(SuiteName, TestcaseName) ->
     io:format(?red("~p.~p: Failed\n"), [SuiteName, TestcaseName]).
 
 report_suite_starts(SuiteName) ->
-    io:format(?cyan("~p...\n"), [SuiteName]).
+    io:format(?cyan("~p ...\n"), [SuiteName]).
 
 report_testcase_starts(TestcaseName) ->
-    io:format(?cyan("  ~p...\n"), [TestcaseName]).
+    io:format(?cyan("  ~p ...\n"), [TestcaseName]).
 
 report_testcase_ends(TestcaseName, ok) ->
-    io:format(?cyan("  ~p: ") ++ ?green("~s\n"), [TestcaseName, "OK"]);
+    io:format(?cyan("  ~p : ") ++ ?green("~s\n"), [TestcaseName, "OK"]);
 report_testcase_ends(TestcaseName, skipped) ->
-    io:format(?cyan("  ~p: ") ++ ?yellow("~s\n"), [TestcaseName, "Skipped"]);
+    io:format(?cyan("  ~p : ") ++ ?yellow("~s\n"), [TestcaseName, "Skipped"]);
 report_testcase_ends(TestcaseName, {skipped, {failed, {_SuiteName, SetupName, {Reason, Stacktrace}}}}) ->
     % Skipped because init failed.
-    io:format(?cyan("  ~p: ") ++ ?red("~s (~s Failed)\n"), [TestcaseName, "Skipped", SetupName]),
+    io:format(?cyan("  ~p : ") ++ ?red("~s (~s Failed)\n"), [TestcaseName, "Skipped", SetupName]),
     io:format("  ~p\n", [Reason]),
     report_stacktrace(Stacktrace);
 report_testcase_ends(TestcaseName, failed) ->
-    io:format(?cyan("  ~p: ") ++ ?red("~s\n"), [TestcaseName, "Failed"]);
+    io:format(?cyan("  ~p : ") ++ ?red("~s\n"), [TestcaseName, "Failed"]);
 report_testcase_ends(TestcaseName, {failed, {Reason, Stacktrace}}) ->
-    io:format(?cyan("  ~p: ") ++ ?red("~s\n"), [TestcaseName, "Failed"]),
+    io:format(?cyan("  ~p : ") ++ ?red("~s\n"), [TestcaseName, "Failed"]),
     io:format("  ~p\n", [Reason]),
     report_stacktrace(Stacktrace);
 report_testcase_ends(TestcaseName, Status) ->
-    io:format(?cyan("  ~p: ") ++ ?red("~p\n"), [TestcaseName, Status]).
+    io:format(?cyan("  ~p : ") ++ ?red("~p\n"), [TestcaseName, Status]).
 
 report_stacktrace(Stacktrace) ->
     [report_stackframe(Frame) || Frame <- Stacktrace].
@@ -116,7 +116,7 @@ report_error(Format, Args) ->
 
 report_coverage([]) ->
     ok;
-report_coverage(Coverage) -> 
+report_coverage(Coverage) ->
     Len = get_max_module_name_len(Coverage),
     Coverage2 = sort_by_pct_covered(Coverage),
     print_coverage(Len, Coverage2).
@@ -130,7 +130,7 @@ get_max_module_name_len(Coverage) ->
 sort_by_pct_covered(Coverage) ->
     lists:sort(
         fun({_, {CovA, NotCovA}}, {_, {CovB, NotCovB}}) ->
-                get_coverage_pct(CovB, NotCovB) =< get_coverage_pct(CovA, NotCovA) 
+                get_coverage_pct(CovB, NotCovB) =< get_coverage_pct(CovA, NotCovA)
         end, Coverage).
 
 %sort_by_module_name(Coverage) ->
