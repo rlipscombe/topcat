@@ -22,7 +22,7 @@ report({error_report, _GL, {_Pid, supervisor_report, D}} = Event) ->
         [{errorContext, Ctx}, {offender, Off}, {reason, Reason}, {supervisor, Sup}] ->
             io:format(
                 ?grey("Supervisor ~w had child ~w exit with reason ~s in context ~w\n"),
-                [supervisor_name(Sup), format_offender(Off), Reason, Ctx]);
+                [supervisor_name(Sup), format_offender(Off), format_reason(Reason), Ctx]);
         _ ->
             error_logger_unknown(Event)
     end;
