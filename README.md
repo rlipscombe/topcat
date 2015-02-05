@@ -94,3 +94,5 @@ extract the contents, though...
 
 Apache 2.0
 
+Contains portions of `lager`, which is also Apache 2.0-licensed; see
+https://github.com/basho/lager.
