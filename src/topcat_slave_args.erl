@@ -7,6 +7,7 @@ create_slave_args(Application, Opts, CtDir, CoverEnabled) ->
 
     SlaveArgs = " -pa " ++ create_code_paths("deps/*/ebin") ++
                 " -pa " ++ create_code_paths("apps/*/ebin") ++
+                " -pa " ++ create_code_paths("_build/*/lib/*/ebin") ++
                 " -pa " ++ filename:absname(".topcat") ++
                 " -s topcat_slave -s init stop" ++
                 " -dir " ++ TestDir ++
