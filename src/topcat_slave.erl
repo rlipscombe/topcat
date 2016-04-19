@@ -9,7 +9,7 @@ start() ->
 
     {ok, [[TestDir]]} = init:get_argument(dir),
     {ok, [[LogDir]]} = init:get_argument(logdir),
-    
+
     CoverOpts = get_cover_opts(),
     FilterOpts = get_filter_opts(),
 
@@ -84,7 +84,9 @@ check_make_result(_) -> topcat:halt(1).
 
 handle_run_test_result({_Ok, _Failed, {_UserSkipped, _AutoSkipped}}) ->
     ok;
+handle_run_test_result({terminated, _Details}) ->
+    topcat_server:notify({error, terminated}),
+    topcat:halt(1);
 handle_run_test_result({error, Reason}) ->
     topcat_server:notify({error, Reason}),
     topcat:halt(1).
-
