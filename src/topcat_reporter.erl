@@ -67,7 +67,9 @@ report_testcase_ends(TestcaseName, {failed, {Reason, Stacktrace}}) ->
 report_testcase_ends(TestcaseName, Status) ->
     io:format(?cyan("  ~p : ") ++ ?red("~p\n"), [TestcaseName, Status]).
 
-report_stacktrace(Stacktrace) ->
+report_stacktrace({M, F, A}) ->
+    io:format("  at ~p:~p/~p\n", [M, F, length(A)]);
+report_stacktrace(Stacktrace = [_|_]) ->
     [report_stackframe(Frame) || Frame <- Stacktrace].
 
 report_stackframe({Module, Function, [], _}) ->
