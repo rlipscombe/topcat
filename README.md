@@ -1,5 +1,7 @@
 # rebar ct replacement
 
+**Note: `topcat` is no longer being maintained. We've moved to `rebar3`, which actually works properly, so it's not needed any more.**
+
 ## Why "topcat"?
 
 Well, it replaces "rebar ct". "ct" reversed is "tc". "T.C." is *Top Cat*.
